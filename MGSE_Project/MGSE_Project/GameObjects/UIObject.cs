@@ -10,7 +10,7 @@ namespace MGSE_Project.GameObjects
 {
     class UIObject : IGameObject
     {
-        public void loadContent(ContentManager content, Texture2D texture)
+        public void loadContent(ContentManager content)
         {
             throw new NotImplementedException();
         }

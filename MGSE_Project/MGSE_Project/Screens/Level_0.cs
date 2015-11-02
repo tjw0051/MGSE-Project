@@ -29,28 +29,60 @@ namespace MGSE_Project
         {
             spriteBatch = ScreenManager.SpriteBatch;
             content = new ContentManager(ScreenManager.Game.Services, "Content");
+            Random random = new Random();
 
-            Texture2D playerTexture = content.Load<Texture2D>("player");
-            Texture2D pickupTexture = content.Load<Texture2D>("pickup");
+            Texture2D playerTexture = content.Load<Texture2D>("Textures/player");
+            Texture2D pickupTexture = content.Load<Texture2D>("Textures/pickup");
+            Texture2D boundaryTexture = content.Load<Texture2D>("Textures/boundary");
 
             gameObjects = new List<IGameObject>();
-            gameObjects.Add(new PlayerObject("Player 1", new ClientInput(), new Vector2(0,0), Color.BlueViolet));
+            gameObjects.Add(
+                new PlayerObject("PLAYER 1", 
+                new ClientInput(),
+                new Vector2(0,0), 
+                new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
+                playerTexture));
 
             worldObjects = new List<IGameObject>();
-            Random random = new Random();
+            
             for(int i = 0; i < noOfPickups; i++)
             {
                 worldObjects.Add(new WorldObject(
-                    new Vector2(random.Next(0, ScreenManager.GraphicsDevice.Viewport.Width),
-                                random.Next(0, ScreenManager.GraphicsDevice.Viewport.Height))));
+                    new Rectangle(random.Next(0, ScreenManager.GraphicsDevice.Viewport.Width), 
+                        random.Next(0, ScreenManager.GraphicsDevice.Viewport.Height),
+                        25, 25), pickupTexture));
             }
 
-            
 
+            //Draw World Boundaries
+            worldObjects.Add(
+                new WorldObject(
+                    new Rectangle(0, 0, 5, ScreenManager.GraphicsDevice.Viewport.Height), 
+                    boundaryTexture));
+            worldObjects.Add(
+                new WorldObject(
+                    new Rectangle(ScreenManager.GraphicsDevice.Viewport.Width - 5, 0, 5,
+                        ScreenManager.GraphicsDevice.Viewport.Height),
+                    boundaryTexture));
+            worldObjects.Add(
+                new WorldObject(
+                    new Rectangle(0, 0, ScreenManager.GraphicsDevice.Viewport.Width,
+                        5),
+                    boundaryTexture));
+            worldObjects.Add(
+                new WorldObject(
+                    new Rectangle(0, ScreenManager.GraphicsDevice.Viewport.Height - 5,
+                    ScreenManager.GraphicsDevice.Viewport.Width, 5),
+                    boundaryTexture));
+
+
+            //TODO: World objects are explicitly named but gameobjects / Player are not
+            /*
             foreach (IGameObject worldObjects in worldObjects)
-                worldObjects.loadContent(content, pickupTexture);
+                worldObjects.loadContent(content);
+            */
             foreach (IGameObject gameObject in gameObjects)
-                gameObject.loadContent(content, playerTexture);
+                gameObject.loadContent(content);
 
             //LoadTextures
             //LoadSounds

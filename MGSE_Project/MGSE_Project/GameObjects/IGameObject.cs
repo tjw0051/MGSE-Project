@@ -17,7 +17,7 @@ namespace MGSE_Project
 
         */
 
-        void loadContent(ContentManager content, Texture2D texture);
+        void loadContent(ContentManager content);
         void update(GameTime gameTime);
         void draw(GameTime gameTime, SpriteBatch spriteBatch);
     }

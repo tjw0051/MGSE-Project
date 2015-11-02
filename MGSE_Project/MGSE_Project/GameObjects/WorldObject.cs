@@ -12,26 +12,28 @@ namespace MGSE_Project
     {
         Texture2D texture;
         Vector2 pos;
-        Rectangle rect;
+        Rectangle rectangle;
 
-        public WorldObject(Vector2 pos)
+        public WorldObject(Rectangle rectangle, Texture2D texture)
         {
-            this.pos = pos;
-        }
-        public void loadContent(ContentManager content, Texture2D texture)
-        {
+            this.rectangle = rectangle;
             this.texture = texture;
+        }
+        //TODO: Cleanup - texture can be assigned in initializer
+        public void loadContent(ContentManager content)
+        {
         }
 
         public void update(GameTime gameTime)
         {
             //Check for collision with player
-            rect = new Rectangle((int)pos.X + 50, (int)pos.Y + 50, 25, 25);
+            //Make them float around slowly
+            
         }
 
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture, rect, Color.White);
+            spriteBatch.Draw(texture, rectangle, Color.White);
         }
     }
 }

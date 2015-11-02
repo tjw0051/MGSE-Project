@@ -17,24 +17,25 @@ namespace MGSE_Project
         Color color;
         Texture2D texture;
         Rectangle rect;
+        SpriteFont font;
 
         IInputDevice inputDevice;
 
-        KeyboardState kbState;
-
         public PlayerObject() { }
 
-        public PlayerObject(string name, IInputDevice inputDevice, Vector2 startPosition, Color color)
+        public PlayerObject(string name, IInputDevice inputDevice,
+            Vector2 startPosition, Color color, Texture2D texture)
         {
             this.name = name;
             this.inputDevice = inputDevice;
             pos = startPosition;
             this.color = color;
+            this.texture = texture;
         }
 
-        public void loadContent(ContentManager content, Texture2D texture)
+        public void loadContent(ContentManager content)
         {
-            this.texture = texture;
+            font = content.Load<SpriteFont>("SpriteFont1");
         }
 
         public void update(GameTime gameTime)
@@ -52,6 +53,10 @@ namespace MGSE_Project
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(texture, rect, color);
+            Vector2 fontOrigin = font.MeasureString(name) / 2;
+            spriteBatch.DrawString(font, name,
+                new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2),
+                Color.Black, 0, fontOrigin, 1.0f, SpriteEffects.None, 0.5f);
         }
     }
 }
