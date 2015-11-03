@@ -12,6 +12,7 @@ namespace MGSE_Project
     class PlayerObject : IGameObject
     {
         string name = "";
+        int score;
         Vector2 pos;
         Vector2 velocity;
         Color color;

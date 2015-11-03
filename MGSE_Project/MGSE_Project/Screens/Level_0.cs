@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using System.IO;
+using System.Net;
 
 namespace MGSE_Project
 {
@@ -18,12 +19,20 @@ namespace MGSE_Project
         List<IGameObject> worldObjects;
         SpriteBatch spriteBatch;
         ContentManager content;
+        Connection connection;
 
         int noOfPickups = 20;
 
         public Level_0()
         {
             ScreenState = ScreenState.Active;
+
+            connection = new Connection();
+            connection.Connect(IPAddress.Parse("192.168.0.8"), 4444);
+            //Handle error code here (return to main menu)
+
+            //connection.SendInit(); //Send player data
+            //Call method to recieve other player data and add to worldObjects to be drawn. Call in update method
         }
         public override void LoadContent()
         {
@@ -110,7 +119,6 @@ namespace MGSE_Project
                 worldObjects.update(gameTime);
             foreach (IGameObject gameobject in gameObjects)
                 gameobject.update(gameTime);
-            
         }
         public override void Draw(GameTime gameTime)
         {
@@ -124,7 +132,6 @@ namespace MGSE_Project
                 gameobject.draw(gameTime, spriteBatch);
 
             spriteBatch.End();
-
         }
     }
 }
