@@ -28,6 +28,26 @@ namespace MGSE_Project
                 return score;
             }
         }
+        Vector2 center;
+        public Vector2 Center
+        {
+            get
+            {
+                return new Vector2(Pos.X + size/2, Pos.Y + size/2);
+            }
+        }
+        int size;
+        public int Size
+        {
+            get
+            {
+                return size;
+            }
+            set
+            {
+                size = value;
+            }
+        }
         Vector2 pos;
         public Vector2 Pos
         {
@@ -36,6 +56,7 @@ namespace MGSE_Project
                 return pos;
             }
         }
+        
         Vector2 velocity;
         
         Color color;
@@ -48,13 +69,15 @@ namespace MGSE_Project
         public PlayerObject() { }
 
         public PlayerObject(string name, IInputDevice inputDevice,
-            Vector2 startPosition, Color color, Texture2D texture)
+            Vector2 startPosition, Color color, Texture2D texture, int size)
         {
             this.name = name;
             this.inputDevice = inputDevice;
             pos = startPosition;
             this.color = color;
             this.texture = texture;
+            this.size = size;
+            rect = new Rectangle((int)Pos.X, (int)Pos.Y, size, size);
         }
 
         public void loadContent(ContentManager content)
@@ -67,12 +90,14 @@ namespace MGSE_Project
             pos.X = x;
             pos.Y = y;
         }
-
-        public void updateSize(int size)
+        public void Shrink()
         {
-
+            size--;
         }
-
+        public void Grow()
+        {
+            size++;
+        }
         public void update(GameTime gameTime)
         {
             inputDevice.update();
@@ -80,9 +105,11 @@ namespace MGSE_Project
             
             pos.X += velocity.X * gameTime.ElapsedGameTime.Milliseconds;
             pos.Y += velocity.Y * gameTime.ElapsedGameTime.Milliseconds;
-
-            //Todo: Don't keep creating new rectangles
-            rect = new Rectangle((int)pos.X + 50, (int)pos.Y + 50, 150, 150);
+            
+            rect.X = (int)pos.X;
+            rect.Y = (int)pos.Y;
+            rect.Width = size;
+            rect.Height = size;
         }
 
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)

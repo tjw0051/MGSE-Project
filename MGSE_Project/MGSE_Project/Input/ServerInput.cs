@@ -4,20 +4,21 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 
-namespace MGSE_Project.Input
+namespace MGSE_Project
 {
     class ServerInput : IInputDevice
     {
+        private Vector2 axis;
         public Vector2 Axis
         {
             get
             {
-                throw new NotImplementedException();
+                return axis;
             }
 
             set
             {
-                throw new NotImplementedException();
+                axis = value;
             }
         }
 
@@ -46,10 +47,13 @@ namespace MGSE_Project.Input
                 throw new NotImplementedException();
             }
         }
+        public ServerInput()
+        {
+            axis = new Vector2(0, 0);
+        }
 
         public void update()
         {
-            throw new NotImplementedException();
         }
     }
 }
