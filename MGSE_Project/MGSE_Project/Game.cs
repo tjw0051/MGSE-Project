@@ -22,8 +22,8 @@ namespace MGSE_Project
             Content.RootDirectory = "Content";
 
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1440;
-            graphics.PreferredBackBufferHeight = 900;
+            graphics.PreferredBackBufferWidth = 1024;
+            graphics.PreferredBackBufferHeight = 768;
 
             screenManager = new ScreenManager(this);
             Components.Add(screenManager);

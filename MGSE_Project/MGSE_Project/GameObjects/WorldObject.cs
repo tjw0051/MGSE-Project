@@ -14,6 +14,15 @@ namespace MGSE_Project
         Vector2 pos;
         Rectangle rectangle;
 
+        string name = "";
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+        }
+
         public WorldObject(Rectangle rectangle, Texture2D texture)
         {
             this.rectangle = rectangle;

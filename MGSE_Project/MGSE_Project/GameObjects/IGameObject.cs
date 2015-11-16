@@ -16,6 +16,10 @@ namespace MGSE_Project
         Collidable/rigid/etc
 
         */
+        string Name
+        {
+            get;
+        }
 
         void loadContent(ContentManager content);
         void update(GameTime gameTime);

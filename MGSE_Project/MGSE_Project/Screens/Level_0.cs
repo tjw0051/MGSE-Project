@@ -17,10 +17,13 @@ namespace MGSE_Project
         bool runOnce = false;
 
         List<IGameObject> gameObjects;
+        List<PlayerObject> players;
         List<IGameObject> worldObjects;
         SpriteBatch spriteBatch;
         ContentManager content;
         Connection connection;
+
+        Texture2D playerTexture;
 
         int noOfPickups = 20;
 
@@ -28,7 +31,6 @@ namespace MGSE_Project
         {
             ScreenState = ScreenState.Active;
 
-            
             //Handle error code here (return to main menu)
 
             //connection.SendInit(); //Send player data
@@ -40,13 +42,13 @@ namespace MGSE_Project
             content = new ContentManager(ScreenManager.Game.Services, "Content");
             Random random = new Random();
 
-            Texture2D playerTexture = content.Load<Texture2D>("Textures/player");
+            playerTexture = content.Load<Texture2D>("Textures/player");
             Texture2D pickupTexture = content.Load<Texture2D>("Textures/pickup");
             Texture2D boundaryTexture = content.Load<Texture2D>("Textures/boundary");
 
-            gameObjects = new List<IGameObject>();
-            gameObjects.Add(
-                new PlayerObject("PLAYER1", 
+            players = new List<PlayerObject>();
+            players.Add(
+                new PlayerObject("PLAYER " + random.Next(0, 100), 
                 new ClientInput(),
                 new Vector2(0,0), 
                 new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
@@ -90,12 +92,15 @@ namespace MGSE_Project
             foreach (IGameObject worldObjects in worldObjects)
                 worldObjects.loadContent(content);
             */
-            foreach (IGameObject gameObject in gameObjects)
-                gameObject.loadContent(content);
-
             connection = new Connection();
             connection.Connect(IPAddress.Parse("127.0.0.1"), 8888);
-            connection.sendInit(gameObjects.ElementAt(0) as PlayerObject); //send initial player data
+            connection.Initialize(players.ElementAt(0) as PlayerObject); //send initial player data
+            updatePlayers(connection.PlayerList);
+
+            foreach (PlayerObject player in players)
+                player.loadContent(content);
+
+            
 
 
             //LoadTextures
@@ -110,6 +115,38 @@ namespace MGSE_Project
 
         }
 
+        private void updatePlayers(List<PlayerIn> newPlayers)
+        {
+            bool exists;
+            foreach (PlayerIn player in newPlayers)
+            {
+                exists = false;
+                foreach (PlayerObject currentPlayer in players)
+                {
+                    if(currentPlayer.Name == player.name)
+                    {
+                        //gameObjects.Remove(gameObject);
+                        currentPlayer.updatePosition(player.posX, player.posY);
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists)
+                {
+                    players.Add(
+                                new PlayerObject(player.name,
+                                new ClientInput(),
+                                new Vector2(player.posX, player.posY),
+                                new Color(200, 0, 20),
+                                playerTexture));
+                    exists = false;
+                }
+            }
+
+            connection.SendUpdate(players.ElementAt(0) as PlayerObject);
+        }
+
+
         public override void Update(GameTime gameTime)
         {
 
@@ -120,10 +157,12 @@ namespace MGSE_Project
                 runOnce = true;
             }
 
+
+            updatePlayers(connection.PlayerList);
             foreach (IGameObject worldObjects in worldObjects)
                 worldObjects.update(gameTime);
-            foreach (IGameObject gameobject in gameObjects)
-                gameobject.update(gameTime);
+            foreach (PlayerObject player in players)
+                player.update(gameTime);
         }
         public override void Draw(GameTime gameTime)
         {
@@ -133,8 +172,8 @@ namespace MGSE_Project
 
             foreach (IGameObject worldObjects in worldObjects)
                 worldObjects.draw(gameTime, spriteBatch);
-            foreach (IGameObject gameobject in gameObjects)
-                gameobject.draw(gameTime, spriteBatch);
+            foreach (PlayerObject player in players)
+                player.draw(gameTime, spriteBatch);
 
             spriteBatch.End();
         }

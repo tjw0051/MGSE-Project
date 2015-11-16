@@ -62,6 +62,17 @@ namespace MGSE_Project
             font = content.Load<SpriteFont>("SpriteFont1");
         }
 
+        public void updatePosition(int x, int y)
+        {
+            pos.X = x;
+            pos.Y = y;
+        }
+
+        public void updateSize(int size)
+        {
+
+        }
+
         public void update(GameTime gameTime)
         {
             inputDevice.update();
@@ -77,10 +88,12 @@ namespace MGSE_Project
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(texture, rect, color);
-            Vector2 fontOrigin = font.MeasureString(name) / 2;
+            //Vector2 fontOrigin = font.MeasureString(name) / 2;
+            /*
             spriteBatch.DrawString(font, name,
                 new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2),
                 Color.Black, 0, fontOrigin, 1.0f, SpriteEffects.None, 0.5f);
+            */
         }
     }
 }

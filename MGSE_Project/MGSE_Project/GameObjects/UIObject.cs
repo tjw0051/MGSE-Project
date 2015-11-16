@@ -10,6 +10,15 @@ namespace MGSE_Project.GameObjects
 {
     class UIObject : IGameObject
     {
+        string name = "";
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+        }
+
         public void loadContent(ContentManager content)
         {
             throw new NotImplementedException();

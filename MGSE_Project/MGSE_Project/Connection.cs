@@ -17,22 +17,23 @@ namespace MGSE_Project
 {
     class Connection
     {
-        int port;
-        IPAddress ipAddress;
         private TcpClient tcpClient;
         private NetworkStream stream;
-        private StreamReader reader;
-        private StreamWriter writer;
-        DataContractJsonSerializer serializer;
         JavaScriptSerializer jsSerializer;
 
         Thread readThread;
 
+        private List<PlayerIn> players;
+        public List<PlayerIn> PlayerList
+        {
+            get { return players; }
+        }
+
         public Connection()
         {
             tcpClient = new TcpClient();
-            serializer = new DataContractJsonSerializer(typeof(PlayerData));
             jsSerializer = new JavaScriptSerializer();
+            players = new List<PlayerIn>();
         }
         
         public int Connect(IPAddress ipAddress, int port)
@@ -55,50 +56,57 @@ namespace MGSE_Project
             return error;
         }
         
-        public int sendInit(PlayerObject gameObject)
+        public int Initialize(PlayerObject playerObject)
         {
             Console.WriteLine("Sending Init");
-            if (gameObject != null)
-            {
-                PlayerIn data = new PlayerIn()
-                {
-                    name = gameObject.Name,
-                    //size = gameObject.Score,
-                    //posX = (int)gameObject.Pos.X,
-                    //posY = (int)gameObject.Pos.Y,
-                };
-                try
-                {
-                    //serializer.WriteObject(stream, data);
-                    string json = jsSerializer.Serialize(data);
-                    byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-                    byte[] size = BitConverter.GetBytes(jsonBytes.Length);
-                    byte[] message = new byte[jsonBytes.Length + 4];
-                    Console.WriteLine("messageL: " + message.Length + " jsonL: " + jsonBytes.Length + " sizeL: " + size.Length);
-                    //Message:
-                    //Bytes     Data
-                    //-----------------------------
-                    //0-3       Message Length
-                    //4+        Message
-                    Console.WriteLine("Test1");
-                    System.Buffer.BlockCopy(size, 0, message, 0, size.Length);
-                    Console.WriteLine("Test2");
-                    System.Buffer.BlockCopy(jsonBytes, 0, message, 4, jsonBytes.Length);
-                    Console.WriteLine("Test3");
-                    Console.WriteLine("Json: " + json + "\n jsonSize: " + jsonBytes.Length + "\n MessageLength: " + message.Length);
-                    stream.Write(message, 0, message.Length);
-                    Console.WriteLine("Message Sent");
-                }
-                catch(Exception e)
-                {
-                    return 1;
-                    Console.WriteLine("Init Exception: " + e.Message);
-                }
-            }
+            SendUpdate(playerObject);
             readThread = new Thread(new ThreadStart(ConnectionThread));
             readThread.Start();
 
             return 0;
+        }
+
+        public void SendUpdate(PlayerObject playerObject)
+        {
+            if (playerObject != null)
+            {
+                PlayerIn data = new PlayerIn()
+                {
+                    name = playerObject.Name,
+                    size = playerObject.Score,
+                    posX = (int)playerObject.Pos.X,
+                    posY = (int)playerObject.Pos.Y,
+                };
+                try
+                {
+                    //serializer.WriteObject(stream, data);
+                    byte[] message = CreateMessage(jsSerializer.Serialize(data));
+                    stream.Write(message, 0, message.Length);
+                    Console.WriteLine("Message Sent");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Init Exception: " + e.Message);
+                }
+            }
+        }
+        
+        private byte[] CreateMessage(string message)
+        {
+            if (message == null)
+                throw new System.ArgumentException("CreateMessage() must have an input message");
+
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(message);
+            byte[] sizeBytes = BitConverter.GetBytes(jsonBytes.Length);
+            byte[] messageBytes = new byte[jsonBytes.Length + 4];
+            //Message:
+            //Bytes     Data
+            //-----------------------------
+            //0-3       Message Length
+            //4+        Message
+            System.Buffer.BlockCopy(sizeBytes, 0, messageBytes, 0, sizeBytes.Length);
+            System.Buffer.BlockCopy(jsonBytes, 0, messageBytes, 4, jsonBytes.Length);
+            return messageBytes;
         }
 
         protected void ConnectionThread()
@@ -118,7 +126,6 @@ namespace MGSE_Project
                             byte[] data = new byte[4];
                             stream.Read(data, 0, 4);
                             int dataSize = BitConverter.ToInt32(data, 0);
-                            Console.WriteLine("Data Size: " + dataSize);
 
                             byte[] jsonData = new byte[dataSize];
                             stream.Read(jsonData, 0, dataSize);
@@ -126,48 +133,30 @@ namespace MGSE_Project
                             Console.WriteLine("Data: " + Encoding.UTF8.GetString(jsonData));
                             PlayerIn newPlayer = jsSerializer.Deserialize<PlayerIn>(jsonString);
                             Console.WriteLine("Player Name: " + newPlayer.name);
+                            UpdatePlayerList(newPlayer);
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine("Init Exception: " + e.Message);
                         }
                     }
-                    
-                    //stream.Read(data, 0, 4096);
-                    //string read = Encoding.UTF8.GetString(data);
-                    
-                    //Console.WriteLine(read);
-                    Console.WriteLine("...");
-                    /*
-                    try
-                    {
-                        byte[] data = new byte[4096];
-                        int bytesRead = 0;
-                        bytesRead = stream.Read(data, 0, 4096);
-                        Console.WriteLine(Encoding.ASCII.GetString(data));
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Error reading from stream");
-                    }
-                    */
-                    /*
-                    try
-                    {
-                        //PlayerData newPlayer = (PlayerData)serializer.ReadObject(stream);
-                        
-                        //PlayerIn newPlayer = jsSerializer.Deserialize<PlayerIn>(read);//new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<PlayerIn>(read);
-                        Console.WriteLine("New player recieved.");
-                        //Console.WriteLine("Player Name: " + newPlayer.name);
-                    }
-                    catch (Exception e) //SerializationException
-                    {
-                        //Console.WriteLine("error thrown while deserializing object. Error: " + e.Message);
-
-                    } */
                 }
             }
-            
+        }
+
+        private void UpdatePlayerList(PlayerIn newPlayer)
+        {
+            foreach(PlayerIn player in players)
+            {
+                if(player.name == newPlayer.name)
+                {
+                    player.posX = newPlayer.posX;
+                    player.posY = newPlayer.posY;
+                    player.size = newPlayer.size;
+                    return;
+                }
+            }
+            players.Add(newPlayer);
         }
 
         public int Disconnect()
@@ -184,64 +173,17 @@ namespace MGSE_Project
             }
             return 0;
         }
-        private byte[] read()
-        {
-            try
-            {
-                byte[] data = new byte[4096];
-                int bytesRead = 0;
-                bytesRead = stream.Read(data, 0, 4096);
-
-                return data;
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine("Error reading from stream");
-                return null;
-            }
-        }
-        public int SendMovement(Vector2 pos)
-        {
-            //Send position, vel, player size to server
-            return 0;
-        }
-        private MemoryStream JsonToStream(object obj)
-        {
-            MemoryStream stream = new MemoryStream();
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(obj.GetType());
-            serializer.WriteObject(stream, obj);
-
-            return stream;
-        }
         //Recieve input somewhere
     }
 
     public class PlayerIn
     {
         public string name;
-        //public int size;
-        //public int posX;
-        //public int posY;
+        public int size;
+        public int posX;
+        public int posY;
     }
 
-}
-
-
-[DataContract]
-internal class PlayerData
-{
-    [DataMember]
-    internal string name;
-    /*
-    [DataMember]
-    internal int size;
-
-    [DataMember]
-    internal int posX;
-
-    [DataMember]
-    internal int posY;
-    */
 }
 
 /*
