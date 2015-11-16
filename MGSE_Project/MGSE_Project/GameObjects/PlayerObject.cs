@@ -7,14 +7,37 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+
 namespace MGSE_Project
 {
     class PlayerObject : IGameObject
     {
         string name = "";
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+        }
         int score;
+        public int Score
+        {
+            get
+            {
+                return score;
+            }
+        }
         Vector2 pos;
+        public Vector2 Pos
+        {
+            get
+            {
+                return pos;
+            }
+        }
         Vector2 velocity;
+        
         Color color;
         Texture2D texture;
         Rectangle rect;

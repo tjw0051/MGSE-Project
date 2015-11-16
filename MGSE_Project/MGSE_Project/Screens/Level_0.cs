@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Net;
 
+
 namespace MGSE_Project
 {
     class Level_0 : GameScreen
@@ -27,8 +28,7 @@ namespace MGSE_Project
         {
             ScreenState = ScreenState.Active;
 
-            connection = new Connection();
-            connection.Connect(IPAddress.Parse("192.168.0.8"), 4444);
+            
             //Handle error code here (return to main menu)
 
             //connection.SendInit(); //Send player data
@@ -46,7 +46,7 @@ namespace MGSE_Project
 
             gameObjects = new List<IGameObject>();
             gameObjects.Add(
-                new PlayerObject("PLAYER 1", 
+                new PlayerObject("PLAYER1", 
                 new ClientInput(),
                 new Vector2(0,0), 
                 new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
@@ -92,6 +92,11 @@ namespace MGSE_Project
             */
             foreach (IGameObject gameObject in gameObjects)
                 gameObject.loadContent(content);
+
+            connection = new Connection();
+            connection.Connect(IPAddress.Parse("127.0.0.1"), 8888);
+            connection.sendInit(gameObjects.ElementAt(0) as PlayerObject); //send initial player data
+
 
             //LoadTextures
             //LoadSounds
