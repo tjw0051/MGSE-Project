@@ -62,7 +62,7 @@ namespace MGSE_Project
             SendUpdate(playerObject);
             readThread = new Thread(new ThreadStart(ConnectionThread));
             readThread.Start();
-
+            readThread.IsBackground = true;
             return 0;
         }
 

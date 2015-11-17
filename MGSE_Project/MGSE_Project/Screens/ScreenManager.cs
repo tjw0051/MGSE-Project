@@ -24,6 +24,12 @@ namespace MGSE_Project
         {
             base.Initialize();
         }
+        protected override void Dispose(bool disposing)
+        {
+            foreach (GameScreen screen in screens)
+                screen.Dispose(disposing);
+            base.Dispose(disposing);
+        }
         protected override void LoadContent()
         {
             ContentManager content = Game.Content;

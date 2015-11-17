@@ -36,6 +36,10 @@ namespace MGSE_Project
             //connection.SendInit(); //Send player data
             //Call method to recieve other player data and add to worldObjects to be drawn. Call in update method
         }
+        public override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+        }
         public override void LoadContent()
         {
             spriteBatch = ScreenManager.SpriteBatch;
@@ -143,14 +147,10 @@ namespace MGSE_Project
                                 new Color(200, 0, 20),
                                 playerTexture,
                                 player.size));
-                    exists = false;
                 }
             }
-
-            connection.SendUpdate(players.ElementAt(0) as PlayerObject);
+            connection.SendUpdate(players.ElementAt(0));
         }
-
-
         public override void Update(GameTime gameTime)
         {
 
@@ -160,7 +160,6 @@ namespace MGSE_Project
                 Console.WriteLine("GameScreen");
                 runOnce = true;
             }
-
 
             updatePlayers(connection.PlayerList);
             foreach (IGameObject worldObjects in worldObjects)

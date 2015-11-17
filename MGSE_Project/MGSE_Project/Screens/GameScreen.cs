@@ -34,6 +34,7 @@ namespace MGSE_Project
             internal set { screenManager = value; }
         }
 
+        public virtual void Dispose(bool disposing) { }
         public virtual void LoadContent() { }
         public virtual void UnloadContent() { }
         public virtual void Draw(GameTime gameTime) { }
