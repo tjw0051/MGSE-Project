@@ -42,6 +42,7 @@ namespace MGSE_Project
         }
         public override void LoadContent()
         {
+            //Load Assets
             spriteBatch = ScreenManager.SpriteBatch;
             content = new ContentManager(ScreenManager.Game.Services, "Content");
             Random random = new Random();
@@ -50,6 +51,7 @@ namespace MGSE_Project
             Texture2D pickupTexture = content.Load<Texture2D>("Textures/pickup");
             Texture2D boundaryTexture = content.Load<Texture2D>("Textures/boundary");
 
+            //Create This Player
             players = new List<PlayerObject>();
             players.Add(
                 new PlayerObject("PLAYER " + random.Next(0, 100), 
@@ -59,6 +61,7 @@ namespace MGSE_Project
                 playerTexture,
                 random.Next(48, 52)));
 
+            //Create Pickups
             worldObjects = new List<IGameObject>();
             
             for(int i = 0; i < noOfPickups; i++)
@@ -97,6 +100,8 @@ namespace MGSE_Project
             foreach (IGameObject worldObjects in worldObjects)
                 worldObjects.loadContent(content);
             */
+
+            //Create Connection to Server
             connection = new Connection();
             connection.Connect(IPAddress.Parse("127.0.0.1"), 8888);
             connection.Initialize(players.ElementAt(0) as PlayerObject); //send initial player data
@@ -104,9 +109,6 @@ namespace MGSE_Project
 
             foreach (PlayerObject player in players)
                 player.loadContent(content);
-
-            
-
 
             //LoadTextures
             //LoadSounds
@@ -162,6 +164,8 @@ namespace MGSE_Project
             }
 
             updatePlayers(connection.PlayerList);
+
+            //Update World Objects
             foreach (IGameObject worldObjects in worldObjects)
                 worldObjects.update(gameTime);
 

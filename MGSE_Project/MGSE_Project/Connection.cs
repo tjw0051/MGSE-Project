@@ -73,7 +73,7 @@ namespace MGSE_Project
                 PlayerIn data = new PlayerIn()
                 {
                     name = playerObject.Name,
-                    size = playerObject.Score,
+                    size = playerObject.Size,
                     posX = (int)playerObject.Pos.X,
                     posY = (int)playerObject.Pos.Y,
                 };
@@ -130,9 +130,9 @@ namespace MGSE_Project
                             byte[] jsonData = new byte[dataSize];
                             stream.Read(jsonData, 0, dataSize);
                             string jsonString = Encoding.UTF8.GetString(jsonData);
-                            Console.WriteLine("Data: " + Encoding.UTF8.GetString(jsonData));
+                            //Console.WriteLine("Data: " + Encoding.UTF8.GetString(jsonData));
                             PlayerIn newPlayer = jsSerializer.Deserialize<PlayerIn>(jsonString);
-                            Console.WriteLine("Player Name: " + newPlayer.name);
+                            //Console.WriteLine("Player Name: " + newPlayer.name);
                             UpdatePlayerList(newPlayer);
                         }
                         catch (Exception e)
@@ -153,6 +153,8 @@ namespace MGSE_Project
                     player.posX = newPlayer.posX;
                     player.posY = newPlayer.posY;
                     player.size = newPlayer.size;
+                    player.velX = newPlayer.velX;
+                    player.velY = newPlayer.velY;
                     return;
                 }
             }
@@ -182,6 +184,8 @@ namespace MGSE_Project
         public int size;
         public int posX;
         public int posY;
+        public int velX;
+        public int velY;
     }
 
 }

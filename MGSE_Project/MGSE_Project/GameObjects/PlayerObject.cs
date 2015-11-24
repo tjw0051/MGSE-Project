@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-
 namespace MGSE_Project
 {
     class PlayerObject : IGameObject
@@ -115,6 +114,8 @@ namespace MGSE_Project
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(texture, rect, color);
+            Console.WriteLine("Drawing " + Name + " at " + rect.X + " , " + rect.Y
+                 + " , " + rect.Width + " , " + rect.Height);
             //Vector2 fontOrigin = font.MeasureString(name) / 2;
             /*
             spriteBatch.DrawString(font, name,
