@@ -17,23 +17,40 @@ namespace MGSE_Project
 {
     class Connection
     {
+        private static Connection instance = null;
+
         private TcpClient tcpClient;
         private NetworkStream stream;
         JavaScriptSerializer jsSerializer;
 
         Thread readThread;
 
-        private List<PlayerIn> players;
-        public List<PlayerIn> PlayerList
+        //private List<PlayerIn> players;
+        public List<PlayerIn> PlayerList { get; private set; }
+
+        //Singleton used for Connection, as client can only operate
+        //1 connection at a time. Connection needs to be accessible
+        //across game screens and methods.
+        public static Connection Instance
         {
-            get { return players; }
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new Connection();
+                }
+                return instance;
+            }
         }
 
+        public Connection() { }
+
+        /*
         public Connection()
         {
             tcpClient = new TcpClient();
             jsSerializer = new JavaScriptSerializer();
-            players = new List<PlayerIn>();
+            PlayerList = new List<PlayerIn>();
         }
         
         public int Connect(IPAddress ipAddress, int port)
@@ -55,7 +72,28 @@ namespace MGSE_Project
 
             return error;
         }
-        
+        */
+        public int ConnectToServer(string ipAddress, int port)
+        {
+            int error = 0;
+            tcpClient = new TcpClient();
+            jsSerializer = new JavaScriptSerializer();
+            PlayerList = new List<PlayerIn>();
+
+            try
+            {
+                tcpClient.Connect(IPAddress.Parse(ipAddress), port);
+                stream = tcpClient.GetStream();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to connect to " +
+                    ipAddress + " at port " + port);
+                error = 1;
+            }
+            return error;
+        }
+
         public int Initialize(PlayerObject playerObject)
         {
             Console.WriteLine("Sending Init");
@@ -68,7 +106,7 @@ namespace MGSE_Project
 
         public void SendUpdate(PlayerObject playerObject)
         {
-            if (playerObject != null)
+            if (playerObject != null && tcpClient.Connected)
             {
                 PlayerIn data = new PlayerIn()
                 {
@@ -146,7 +184,7 @@ namespace MGSE_Project
 
         private void UpdatePlayerList(PlayerIn newPlayer)
         {
-            foreach(PlayerIn player in players)
+            foreach(PlayerIn player in PlayerList)
             {
                 if(player.name == newPlayer.name)
                 {
@@ -158,7 +196,7 @@ namespace MGSE_Project
                     return;
                 }
             }
-            players.Add(newPlayer);
+            PlayerList.Add(newPlayer);
         }
 
         public int Disconnect()

@@ -28,7 +28,8 @@ namespace MGSE_Project
             screenManager = new ScreenManager(this);
             Components.Add(screenManager);
 
-            screenManager.AddScreen(new MenuScreen(), null);
+            screenManager.AddScreen(new LoginScreen(), null);
+            screenManager.AddScreen(new MatchmakingScreen(), null);
             screenManager.AddScreen(new Level_0(), null);
         }
         protected override void Initialize()

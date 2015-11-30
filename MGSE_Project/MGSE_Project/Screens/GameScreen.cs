@@ -39,5 +39,6 @@ namespace MGSE_Project
         public virtual void UnloadContent() { }
         public virtual void Draw(GameTime gameTime) { }
         public virtual void Update(GameTime gameTime) { }
+        public virtual void Transition(string message) { }
     }
 }

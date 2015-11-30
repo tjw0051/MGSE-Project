@@ -12,16 +12,18 @@ using System.Net;
 
 namespace MGSE_Project
 {
+    /// <summary>
+    /// The main level for the game.
+    /// </summary>
     class Level_0 : GameScreen
     {
         bool runOnce = false;
-
+        string playerName = "NoName";
         List<IGameObject> gameObjects;
         List<PlayerObject> players;
         List<IGameObject> worldObjects;
         SpriteBatch spriteBatch;
         ContentManager content;
-        Connection connection;
 
         Texture2D playerTexture;
 
@@ -29,8 +31,7 @@ namespace MGSE_Project
 
         public Level_0()
         {
-            ScreenState = ScreenState.Active;
-
+            //ScreenState = ScreenState.Active;
             //Handle error code here (return to main menu)
 
             //connection.SendInit(); //Send player data
@@ -40,6 +41,9 @@ namespace MGSE_Project
         {
             base.Dispose(disposing);
         }
+        /// <summary>
+        /// Load initial game data and assets once.
+        /// </summary>
         public override void LoadContent()
         {
             //Load Assets
@@ -54,7 +58,7 @@ namespace MGSE_Project
             //Create This Player
             players = new List<PlayerObject>();
             players.Add(
-                new PlayerObject("PLAYER " + random.Next(0, 100), 
+                new PlayerObject(playerName, //"PLAYER " + random.Next(0, 100), 
                 new ClientInput(),
                 new Vector2(random.Next(0, 500),random.Next(0, 500)), 
                 new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
@@ -102,13 +106,15 @@ namespace MGSE_Project
             */
 
             //Create Connection to Server
+            /*
             connection = new Connection();
-            connection.Connect(IPAddress.Parse("127.0.0.1"), 8888);
-            connection.Initialize(players.ElementAt(0) as PlayerObject); //send initial player data
+            if(connection.Connect(IPAddress.Parse("127.0.0.1"), 8888) == 0)
+                connection.Initialize(players.ElementAt(0) as PlayerObject); //send initial player data
             updatePlayers(connection.PlayerList);
 
             foreach (PlayerObject player in players)
                 player.loadContent(content);
+            */
 
             //LoadTextures
             //LoadSounds
@@ -122,6 +128,10 @@ namespace MGSE_Project
 
         }
 
+        /// <summary>
+        /// Updates player data based on data recieved from the server.
+        /// </summary>
+        /// <param name="newPlayers">List of newly recieved player data from server</param>
         private void updatePlayers(List<PlayerIn> newPlayers)
         {
             bool exists;
@@ -151,8 +161,12 @@ namespace MGSE_Project
                                 player.size));
                 }
             }
-            connection.SendUpdate(players.ElementAt(0));
+            Connection.Instance.SendUpdate(players.ElementAt(0));
         }
+        /// <summary>
+        /// Calls functions that require updating every cycle of the game loop.
+        /// </summary>
+        /// <param name="gameTime"> See: XNA Documentation</param>
         public override void Update(GameTime gameTime)
         {
 
@@ -163,7 +177,7 @@ namespace MGSE_Project
                 runOnce = true;
             }
 
-            updatePlayers(connection.PlayerList);
+            updatePlayers(Connection.Instance.PlayerList);
 
             //Update World Objects
             foreach (IGameObject worldObjects in worldObjects)
@@ -175,6 +189,10 @@ namespace MGSE_Project
                 player.update(gameTime);
             }
         }
+        /// <summary>
+        /// Check for collisions between players.
+        /// </summary>
+        /// <param name="gameTime"></param>
         public void CollisionCheck(GameTime gameTime)
         {
             foreach (PlayerObject player in players)
@@ -198,6 +216,11 @@ namespace MGSE_Project
                 
             }
         }
+        
+        /// <summary>
+        /// Draw the game on the canvas
+        /// </summary>
+        /// <param name="gameTime"></param>
         public override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
@@ -210,6 +233,12 @@ namespace MGSE_Project
                 player.draw(gameTime, spriteBatch);
 
             spriteBatch.End();
+        }
+        public override void Transition(string message)
+        {
+            playerName = message;
+            //players[0].Name = message;
+            //Do something with transition message.
         }
     }
 }

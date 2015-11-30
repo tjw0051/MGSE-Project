@@ -9,6 +9,9 @@ using Microsoft.Xna.Framework.Input;
 
 namespace MGSE_Project
 {
+    /// <summary>
+    /// Defines the players in the game.
+    /// </summary>
     class PlayerObject : IGameObject
     {
         string name = "";
@@ -17,6 +20,10 @@ namespace MGSE_Project
             get
             {
                 return name;
+            }
+            set
+            {
+                Name = value;
             }
         }
         int score;
@@ -114,9 +121,10 @@ namespace MGSE_Project
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(texture, rect, color);
-            Console.WriteLine("Drawing " + Name + " at " + rect.X + " , " + rect.Y
-                 + " , " + rect.Width + " , " + rect.Height);
-            //Vector2 fontOrigin = font.MeasureString(name) / 2;
+            //Console.WriteLine("Drawing " + Name + " at " + rect.X + " , " 
+            //    + rect.Y + " , " + rect.Width + " , " + rect.Height);
+
+            //Vector2 fontCenter = font.MeasureString(name) / 2;
             /*
             spriteBatch.DrawString(font, name,
                 new Vector2(rect.X + rect.Width / 2, rect.Y + rect.Height / 2),
