@@ -26,7 +26,7 @@ namespace MGSE_Project
         Thread readThread;
 
         //private List<PlayerIn> players;
-        public List<PlayerIn> PlayerList { get; private set; }
+        public List<PlayerState> PlayerList { get; private set; }
 
         //Singleton used for Connection, as client can only operate
         //1 connection at a time. Connection needs to be accessible
@@ -78,7 +78,7 @@ namespace MGSE_Project
             int error = 0;
             tcpClient = new TcpClient();
             jsSerializer = new JavaScriptSerializer();
-            PlayerList = new List<PlayerIn>();
+            PlayerList = new List<PlayerState>();
 
             try
             {
@@ -97,18 +97,53 @@ namespace MGSE_Project
         public int Initialize(PlayerObject playerObject)
         {
             Console.WriteLine("Sending Init");
-            SendUpdate(playerObject);
+            //SendUpdate(playerObject);
             readThread = new Thread(new ThreadStart(ConnectionThread));
             readThread.Start();
             readThread.IsBackground = true;
             return 0;
         }
 
+        public void SendMessage(string messageType, object message)
+        {
+            Console.WriteLine("Sending message type: " + messageType);
+            if(tcpClient.Connected)
+            {
+                JsonMessage json = new JsonMessage()
+                {
+                    type = messageType,
+                    json = jsSerializer.Serialize(message)
+                };
+                string jsonMessage = jsSerializer.Serialize(json);
+
+                //string jsonMessage = jsSerializer.Serialize(message);
+                byte[] byteMessage = StringToBytes(jsonMessage);
+                try {
+                    stream.Write(byteMessage, 0, byteMessage.Length);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("Error writting to stream.");
+                }
+            }
+        }
+        public void SendMessage(PlayerObject playerObject)
+        {
+            PlayerState data = new PlayerState()
+            {
+                name = playerObject.Name,
+                size = playerObject.Size,
+                posX = (int)playerObject.Pos.X,
+                posY = (int)playerObject.Pos.Y,
+            };
+            SendMessage(data.ToString(), data);
+        }
+
         public void SendUpdate(PlayerObject playerObject)
         {
             if (playerObject != null && tcpClient.Connected)
             {
-                PlayerIn data = new PlayerIn()
+                PlayerState data = new PlayerState()
                 {
                     name = playerObject.Name,
                     size = playerObject.Size,
@@ -117,9 +152,12 @@ namespace MGSE_Project
                 };
                 try
                 {
-                    //serializer.WriteObject(stream, data);
-                    byte[] message = CreateMessage(jsSerializer.Serialize(data));
-                    stream.Write(message, 0, message.Length);
+                    string jsonMessage = jsSerializer.Serialize(data);
+                    Console.WriteLine("JSON = " + jsonMessage);
+                    byte[] byteMessage = StringToBytes(jsonMessage);
+
+
+                    stream.Write(byteMessage, 0, byteMessage.Length);
                     Console.WriteLine("Message Sent");
                 }
                 catch (Exception e)
@@ -129,7 +167,8 @@ namespace MGSE_Project
             }
         }
         
-        private byte[] CreateMessage(string message)
+
+        private byte[] StringToBytes(string message)
         {
             if (message == null)
                 throw new System.ArgumentException("CreateMessage() must have an input message");
@@ -164,14 +203,45 @@ namespace MGSE_Project
                             byte[] data = new byte[4];
                             stream.Read(data, 0, 4);
                             int dataSize = BitConverter.ToInt32(data, 0);
-
+                            Console.WriteLine("Data Size: " + dataSize);
                             byte[] jsonData = new byte[dataSize];
                             stream.Read(jsonData, 0, dataSize);
-                            string jsonString = Encoding.UTF8.GetString(jsonData);
-                            //Console.WriteLine("Data: " + Encoding.UTF8.GetString(jsonData));
-                            PlayerIn newPlayer = jsSerializer.Deserialize<PlayerIn>(jsonString);
-                            //Console.WriteLine("Player Name: " + newPlayer.name);
+                            string jsonMessageString = Encoding.UTF8.GetString(jsonData);
+                            Console.WriteLine("JSON Message: " + jsonMessageString);
+                            JsonMessage jsonMessageType = jsSerializer.Deserialize<JsonMessage>(jsonMessageString);
+                            if (jsonMessageType.type == "MGSE_Project.PlayerState")
+                            {
+                                PlayerState playerState = jsSerializer.Deserialize<PlayerState>(jsonMessageType.json);
+                                Console.WriteLine("object is playerstate");
+                                UpdatePlayerList(playerState);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Type is not PlayerState");
+                                stream.Flush();
+                            }
+
+
+                            /*
+                            object deserializedObject = jsSerializer.DeserializeObject(jsonString);
+                            if (deserializedObject as PlayerState != null)
+                            {
+                                Console.WriteLine("object is playerstate");
+                                UpdatePlayerList((PlayerState)deserializedObject);
+                            }
+                            else if (deserializedObject as NewPlayerMessage != null)
+                            {
+                                Console.WriteLine("object is playerstate");
+                            }
+                            else
+                                Console.WriteLine("Object cant be cast \n JSON = " + jsonString);
+                                */
+                                /*
+                            Console.WriteLine("Data: " + Encoding.UTF8.GetString(jsonData));
+                            PlayerState newPlayer = jsSerializer.Deserialize<PlayerState>(jsonMessageString);
+                            Console.WriteLine("Player Name: " + newPlayer.name);
                             UpdatePlayerList(newPlayer);
+                            */
                         }
                         catch (Exception e)
                         {
@@ -182,9 +252,9 @@ namespace MGSE_Project
             }
         }
 
-        private void UpdatePlayerList(PlayerIn newPlayer)
+        private void UpdatePlayerList(PlayerState newPlayer)
         {
-            foreach(PlayerIn player in PlayerList)
+            foreach(PlayerState player in PlayerList)
             {
                 if(player.name == newPlayer.name)
                 {
@@ -216,15 +286,7 @@ namespace MGSE_Project
         //Recieve input somewhere
     }
 
-    public class PlayerIn
-    {
-        public string name;
-        public int size;
-        public int posX;
-        public int posY;
-        public int velX;
-        public int velY;
-    }
+
 
 }
 

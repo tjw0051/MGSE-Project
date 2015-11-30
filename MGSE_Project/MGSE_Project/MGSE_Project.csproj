@@ -78,7 +78,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Connection.cs" />
+    <Compile Include="Networking\Connection.cs" />
     <Compile Include="GameObjects\IGameObject.cs" />
     <Compile Include="GameObjects\PlayerObject.cs" />
     <Compile Include="GameObjects\UIObject.cs" />
@@ -86,6 +86,7 @@
     <Compile Include="Input\ClientInput.cs" />
     <Compile Include="Input\IInputDevice.cs" />
     <Compile Include="Input\ServerInput.cs" />
+    <Compile Include="Networking\MessageTypes.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Game.cs" />

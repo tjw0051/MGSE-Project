@@ -21,6 +21,7 @@ namespace MGSE_Project
         string playerName = "NoName";
         List<IGameObject> gameObjects;
         List<PlayerObject> players;
+        PlayerObject thisPlayer, thisPlayerPreviousState;
         List<IGameObject> worldObjects;
         SpriteBatch spriteBatch;
         ContentManager content;
@@ -57,13 +58,14 @@ namespace MGSE_Project
 
             //Create This Player
             players = new List<PlayerObject>();
-            players.Add(
-                new PlayerObject(playerName, //"PLAYER " + random.Next(0, 100), 
+            thisPlayer = 
+                new PlayerObject(//playerName, //"PLAYER " + random.Next(0, 100), 
+                "PLAYER " + random.Next(0, 100),
                 new ClientInput(),
                 new Vector2(random.Next(0, 500),random.Next(0, 500)), 
                 new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
                 playerTexture,
-                random.Next(48, 52)));
+                random.Next(48, 52));
 
             //Create Pickups
             worldObjects = new List<IGameObject>();
@@ -132,10 +134,10 @@ namespace MGSE_Project
         /// Updates player data based on data recieved from the server.
         /// </summary>
         /// <param name="newPlayers">List of newly recieved player data from server</param>
-        private void updatePlayers(List<PlayerIn> newPlayers)
+        private void updatePlayers(List<PlayerState> newPlayers)
         {
             bool exists;
-            foreach (PlayerIn player in newPlayers)
+            foreach (PlayerState player in newPlayers)
             {
                 exists = false;
                 foreach (PlayerObject currentPlayer in players)
@@ -161,7 +163,12 @@ namespace MGSE_Project
                                 player.size));
                 }
             }
-            Connection.Instance.SendUpdate(players.ElementAt(0));
+            //Stop flooding server with messages for nothing - Will need to be changed to prevent timeout
+            if (thisPlayer != thisPlayerPreviousState)
+            {
+                Connection.Instance.SendUpdate(thisPlayer);
+            }
+            thisPlayerPreviousState = thisPlayer;
         }
         /// <summary>
         /// Calls functions that require updating every cycle of the game loop.
@@ -177,6 +184,7 @@ namespace MGSE_Project
                 runOnce = true;
             }
 
+            thisPlayer.update(gameTime);
             updatePlayers(Connection.Instance.PlayerList);
 
             //Update World Objects
@@ -188,6 +196,7 @@ namespace MGSE_Project
             {
                 player.update(gameTime);
             }
+            
         }
         /// <summary>
         /// Check for collisions between players.
@@ -231,6 +240,7 @@ namespace MGSE_Project
                 worldObjects.draw(gameTime, spriteBatch);
             foreach (PlayerObject player in players)
                 player.draw(gameTime, spriteBatch);
+            thisPlayer.draw(gameTime, spriteBatch);
 
             spriteBatch.End();
         }

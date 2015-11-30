@@ -26,7 +26,7 @@ namespace MGSE_Project
         Button joinButton, exitButton;
         TextBox textMessage;
         List<TextBox> playerNames;
-        List<PlayerIn> playerList;
+        List<PlayerState> playerList;
 
         public MatchmakingScreen()
         {
@@ -59,7 +59,7 @@ namespace MGSE_Project
                 content);
             //Player Names
             playerNames = new List<TextBox>();
-            playerList = new List<PlayerIn>();
+            playerList = new List<PlayerState>();
             
             for(int i = 0; i < 10; i++)             //TODO: Get number of players from server;
             {
@@ -143,7 +143,7 @@ namespace MGSE_Project
         protected void Join()
         {
             Console.WriteLine("Join clicked");
-            ScreenManager.Transition(typeof(Level_0), "TODO - carry over player name");
+            ScreenManager.Transition(typeof(Level_0), "todo");
 
         }
         protected void exit() { Console.WriteLine("Exit clicked"); ScreenManager.Game.Exit(); }
