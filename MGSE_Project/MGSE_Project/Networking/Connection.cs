@@ -127,6 +127,30 @@ namespace MGSE_Project
                 }
             }
         }
+        public void SendServerMessage(string message)
+        {
+            Console.WriteLine("Sending Server Message");
+            if (tcpClient.Connected)
+            {
+                JsonMessage json = new JsonMessage()
+                {
+                    type = "ServerMessage",
+                    json = message
+                };
+                string jsonMessage = jsSerializer.Serialize(json);
+                Console.WriteLine("ServerMessage = " + jsonMessage);
+                //string jsonMessage = jsSerializer.Serialize(message);
+                byte[] byteMessage = StringToBytes(jsonMessage);
+                try
+                {
+                    stream.Write(byteMessage, 0, byteMessage.Length);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error writting to stream.");
+                }
+            }
+        }
         public void SendMessage(PlayerObject playerObject)
         {
             PlayerState data = new PlayerState()
