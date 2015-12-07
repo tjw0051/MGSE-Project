@@ -27,7 +27,7 @@ namespace MGSE_Project
 
         //private List<PlayerIn> players;
         public List<PlayerState> PlayerList { get; private set; }
-
+        public string[] playerList;
         //Singleton used for Connection, as client can only operate
         //1 connection at a time. Connection needs to be accessible
         //across game screens and methods.
@@ -43,7 +43,10 @@ namespace MGSE_Project
             }
         }
 
-        public Connection() { }
+        public Connection()
+        {
+            playerList = new string[] { "Empty" };
+        }
 
         /*
         public Connection()
@@ -162,6 +165,19 @@ namespace MGSE_Project
             };
             SendMessage(data.ToString(), data);
         }
+        public void SendMessage(IMessage message)
+        {
+            try {
+                string jsonMessage = jsSerializer.Serialize(message);
+                Console.WriteLine("Sending IMessage");
+                byte[] byteMessage = StringToBytes(jsonMessage);
+                stream.Write(byteMessage, 0, byteMessage.Length);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error Sending Message. E: " + e.Message);
+            }
+        }
 
         public void SendUpdate(PlayerObject playerObject)
         {
@@ -200,6 +216,7 @@ namespace MGSE_Project
             byte[] jsonBytes = Encoding.UTF8.GetBytes(message);
             byte[] sizeBytes = BitConverter.GetBytes(jsonBytes.Length);
             byte[] messageBytes = new byte[jsonBytes.Length + 4];
+            Console.WriteLine("size: " + jsonBytes.Length);
             //Message:
             //Bytes     Data
             //-----------------------------
@@ -209,11 +226,11 @@ namespace MGSE_Project
             System.Buffer.BlockCopy(jsonBytes, 0, messageBytes, 4, jsonBytes.Length);
             return messageBytes;
         }
-
         protected void ConnectionThread()
         {
+            bool running = true;
             Console.WriteLine("Thread started");
-            while(true)
+            while(running)
             {
                 if (stream.DataAvailable)
                 {
@@ -238,6 +255,13 @@ namespace MGSE_Project
                                 PlayerState playerState = jsSerializer.Deserialize<PlayerState>(jsonMessageType.json);
                                 Console.WriteLine("object is playerstate");
                                 UpdatePlayerList(playerState);
+                            }
+                            if(jsonMessageType.type == "PlayerList")
+                            {
+                                Console.WriteLine("PlayerList Recieved");
+                                PlayerList players = jsSerializer.Deserialize<PlayerList>(jsonMessageString);
+
+                                playerList = players.players;
                             }
                             else
                             {
@@ -273,8 +297,16 @@ namespace MGSE_Project
                         }
                     }
                 }
+                if(tcpClient.Connected == false)
+                {
+                    disconnectEvent("Lost connection to Server");
+                    running = false;
+                }
             }
         }
+
+        public event DisconnectEvent disconnectEvent;
+        public delegate void DisconnectEvent(string errormessage);
 
         private void UpdatePlayerList(PlayerState newPlayer)
         {

@@ -32,7 +32,7 @@ namespace MGSE_Project
         {
             ScreenState = ScreenState.Active;
 
-
+            Connection.Instance.disconnectEvent += new Connection.DisconnectEvent(DisconnectEvent);
 
             //Handle error code here (return to main menu)
 
@@ -110,7 +110,7 @@ namespace MGSE_Project
 
             }
             //Update Player List
-
+            /*
             playerList = Connection.Instance.PlayerList;
             for (int i = 0; i < playerList.Count(); i++)             //TODO: Get number of players from server;
             {
@@ -118,6 +118,16 @@ namespace MGSE_Project
                 if(i < playerNames.Count)
                     playerNames.ElementAt(i).text = playerList.ElementAt(i).name;
             }
+            */
+            if (Connection.Instance.playerList.Length != 0)
+            {
+                for (int i = 0; i < Connection.Instance.playerList.Length; i++)
+                {
+                    if (i < playerNames.Count)
+                        playerNames.ElementAt(i).text = Connection.Instance.playerList[i];
+                }
+            }
+            Connection.Instance.SendMessage(MessageBuilder.ServerMessageBuilder("PlayerList", ""));
 
             foreach (TextBox playerName in playerNames)
             {
@@ -140,6 +150,14 @@ namespace MGSE_Project
 
             lastMouseState = Mouse.GetState();
         }
+
+        public void DisconnectEvent(string message)
+        {
+            Console.WriteLine(message);
+            Connection.Instance.Disconnect();
+            ScreenManager.Transition(typeof(LoginScreen), message);
+        }
+
         protected void Join()
         {
             Console.WriteLine("Join clicked");
