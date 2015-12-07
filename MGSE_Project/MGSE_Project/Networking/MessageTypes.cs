@@ -9,12 +9,19 @@ namespace MGSE_Project
     interface IMessage { };
     public class PlayerState : IMessage
     {
+        public string type = "PlayerState";
         public string name;
         public int size;
         public int posX;
         public int posY;
         public int velX;
         public int velY;
+    }
+
+    public class ServerNameMessage : IMessage
+    {
+        public string type = "ServerName";
+        public string name;
     }
 
     public class NewPlayerMessage : IMessage

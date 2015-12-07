@@ -70,6 +70,8 @@ namespace MGSE_Project
         Rectangle rect;
         SpriteFont font;
 
+        PlayerState currentState;
+
         IInputDevice inputDevice;
 
         public PlayerObject() { }
@@ -83,7 +85,17 @@ namespace MGSE_Project
             this.color = color;
             this.texture = texture;
             this.size = size;
+            velocity = new Vector2(0, 0);
             rect = new Rectangle((int)Pos.X, (int)Pos.Y, size, size);
+            currentState = new PlayerState()
+            {
+                name = this.name,
+                size = this.size,
+                posX = (int)this.pos.X,
+                posY = (int)this.pos.Y,
+                velX = (int)this.velocity.X,
+                velY = (int)this.velocity.Y
+            };
         }
 
         public void loadContent(ContentManager content)
@@ -95,6 +107,35 @@ namespace MGSE_Project
         {
             pos.X = x;
             pos.Y = y;
+        }
+
+        public PlayerState GetState()
+        {
+            currentState.size = this.size;
+            currentState.posX = (int)this.pos.X;
+            currentState.posY = (int)this.pos.Y;
+            currentState.velX = (int)this.velocity.X;
+            currentState.velY = (int)this.velocity.Y;
+            return currentState;
+            /*
+            return new PlayerState
+            {
+                type = "PlayerState",
+                name = this.name,
+                size = this.size,
+                posX = (int)this.pos.X,
+                posY = (int)this.pos.Y,
+                velX = (int)this.velocity.X,
+                velY = (int)this.velocity.Y
+            }; */
+        }
+        public void UpdateState(PlayerState state)
+        {
+            this.size = state.size;
+            this.pos.X = state.posX;
+            this.pos.Y = state.posY;
+            this.velocity.X = state.velX;
+            this.velocity.Y = state.velY;
         }
         public void Shrink()
         {

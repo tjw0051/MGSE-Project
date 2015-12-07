@@ -19,14 +19,6 @@ namespace MGSE_Project
     {
         protected ContentManager contentManager;
         
-        ScreenState screenState = ScreenState.Hidden;
-
-        public ScreenState ScreenState
-        {
-            get { return screenState; }
-            protected set { screenState = value; }
-        }
-
         ScreenManager screenManager;
         public ScreenManager ScreenManager
         {

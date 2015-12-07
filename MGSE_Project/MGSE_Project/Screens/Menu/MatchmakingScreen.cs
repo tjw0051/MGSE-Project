@@ -11,18 +11,11 @@ namespace MGSE_Project
 {
     class MatchmakingScreen : GameScreen
     {
-        string message = "Enter your name below:";
         SpriteBatch spriteBatch;
         ContentManager content;
 
         MouseState mouseState, lastMouseState;
-
-        enum MenuState
-        {
-            IDLE, INPUT, LOADING, ERROR
-        };
-
-        MenuState menuState;
+        
         Button joinButton, exitButton;
         TextBox textMessage;
         List<TextBox> playerNames;
@@ -30,14 +23,7 @@ namespace MGSE_Project
 
         public MatchmakingScreen()
         {
-            ScreenState = ScreenState.Active;
-
             Connection.Instance.disconnectEvent += new Connection.DisconnectEvent(DisconnectEvent);
-
-            //Handle error code here (return to main menu)
-
-            //connection.SendInit(); //Send player data
-            //Call method to recieve other player data and add to worldObjects to be drawn. Call in update method
         }
         /// <summary>
         /// Load initial game data and assets once.
@@ -52,7 +38,7 @@ namespace MGSE_Project
 
             //Server Name
             int screenWidth = this.ScreenManager.GraphicsDevice.Viewport.Width;
-            textMessage = new TextBox("Server: NAME",
+            textMessage = new TextBox("Server: " + Connection.Instance.ServerName,
                 new Vector2( screenWidth/ 2 , 100),
                 Color.Black);
             textMessage.LoadContent(spriteBatch, ScreenManager.GraphicsDevice,
@@ -97,9 +83,10 @@ namespace MGSE_Project
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+
+            // Process Mouse Interaction
             mouseState = Mouse.GetState();
             Rectangle mousePos = new Rectangle(mouseState.X, mouseState.Y, 1, 1);
-
             if (mouseState.LeftButton == ButtonState.Released
                 && lastMouseState.LeftButton == ButtonState.Pressed)
             {
@@ -107,24 +94,14 @@ namespace MGSE_Project
                     Join();
                 else if (mousePos.Intersects(exitButton.rect))
                     exit();
-
             }
-            //Update Player List
-            /*
-            playerList = Connection.Instance.PlayerList;
-            for (int i = 0; i < playerList.Count(); i++)             //TODO: Get number of players from server;
+            // Update list of players
+            if (Connection.Instance.playerNames.Length != 0)
             {
-                //Console.WriteLine("Player: " + playerList.ElementAt(i).name + " at: " + i);
-                if(i < playerNames.Count)
-                    playerNames.ElementAt(i).text = playerList.ElementAt(i).name;
-            }
-            */
-            if (Connection.Instance.playerList.Length != 0)
-            {
-                for (int i = 0; i < Connection.Instance.playerList.Length; i++)
+                for (int i = 0; i < Connection.Instance.playerNames.Length; i++)
                 {
                     if (i < playerNames.Count)
-                        playerNames.ElementAt(i).text = Connection.Instance.playerList[i];
+                        playerNames.ElementAt(i).text = Connection.Instance.playerNames[i];
                 }
             }
             Connection.Instance.SendMessage(MessageBuilder.ServerMessageBuilder("PlayerList", ""));
@@ -135,19 +112,7 @@ namespace MGSE_Project
             }
             joinButton.update(gameTime, mousePos);
             exitButton.update(gameTime, mousePos);
-
-            switch (menuState)
-            {
-                case MenuState.IDLE:
-                    break;
-                case MenuState.INPUT:
-                    break;
-                case MenuState.LOADING:
-                    break;
-                case MenuState.ERROR:
-                    break;
-            }
-
+            
             lastMouseState = Mouse.GetState();
         }
 
@@ -181,16 +146,7 @@ namespace MGSE_Project
                 playerName.draw();
             }
             spriteBatch.End();
-
-            switch (menuState)
-            {
-                case MenuState.INPUT:
-                    break;
-                case MenuState.LOADING:
-                    break;
-                case MenuState.ERROR:
-                    break;
-            }
+            
         }
     }
 }

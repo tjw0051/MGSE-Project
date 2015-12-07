@@ -19,7 +19,6 @@ namespace MGSE_Project
     {
         bool runOnce = false;
         string playerName = "NoName";
-        List<IGameObject> gameObjects;
         List<PlayerObject> players;
         PlayerObject thisPlayer, thisPlayerPreviousState;
         List<IGameObject> worldObjects;
@@ -32,11 +31,6 @@ namespace MGSE_Project
 
         public Level_0()
         {
-            //ScreenState = ScreenState.Active;
-            //Handle error code here (return to main menu)
-
-            //connection.SendInit(); //Send player data
-            //Call method to recieve other player data and add to worldObjects to be drawn. Call in update method
         }
         public override void Dispose(bool disposing)
         {
@@ -47,11 +41,12 @@ namespace MGSE_Project
         /// </summary>
         public override void LoadContent()
         {
-            //Load Assets
+            //Load XNA Components.
             spriteBatch = ScreenManager.SpriteBatch;
             content = new ContentManager(ScreenManager.Game.Services, "Content");
             Random random = new Random();
 
+            //Load Textures
             playerTexture = content.Load<Texture2D>("Textures/player");
             Texture2D pickupTexture = content.Load<Texture2D>("Textures/pickup");
             Texture2D boundaryTexture = content.Load<Texture2D>("Textures/boundary");
@@ -99,36 +94,9 @@ namespace MGSE_Project
                     new Rectangle(0, ScreenManager.GraphicsDevice.Viewport.Height - 5,
                     ScreenManager.GraphicsDevice.Viewport.Width, 5),
                     boundaryTexture));
-
-
-            //TODO: World objects are explicitly named but gameobjects / Player are not
-            /*
-            foreach (IGameObject worldObjects in worldObjects)
-                worldObjects.loadContent(content);
-            */
-
-            //Create Connection to Server
-            /*
-            connection = new Connection();
-            if(connection.Connect(IPAddress.Parse("127.0.0.1"), 8888) == 0)
-                connection.Initialize(players.ElementAt(0) as PlayerObject); //send initial player data
-            updatePlayers(connection.PlayerList);
-
-            foreach (PlayerObject player in players)
-                player.loadContent(content);
-            */
-
-            //LoadTextures
-            //LoadSounds
-            //Load Game Objects?
-
-            //Load UI
         }
 
-        public override void UnloadContent()
-        {
-
-        }
+        public override void UnloadContent() { }
 
         /// <summary>
         /// Updates player data based on data recieved from the server.
@@ -146,14 +114,16 @@ namespace MGSE_Project
                     {
                         //gameObjects.Remove(gameObject);
                         //ToDo: Inconsistent - Properties and set methods
-                        currentPlayer.updatePosition(player.posX, player.posY);
-                        currentPlayer.Size = player.size;
+                        currentPlayer.UpdateState(player);
+                        //currentPlayer.updatePosition(player.posX, player.posY);
+                        //currentPlayer.Size = player.size;
                         exists = true;
                         break;
                     }
                 }
                 if (!exists)
                 {
+                    Console.WriteLine("Creating new player");
                     players.Add(
                                 new PlayerObject(player.name,
                                 new ServerInput(),
@@ -163,12 +133,13 @@ namespace MGSE_Project
                                 player.size));
                 }
             }
-            //Stop flooding server with messages for nothing - Will need to be changed to prevent timeout
-            if (thisPlayer != thisPlayerPreviousState)
-            {
-                Connection.Instance.SendUpdate(thisPlayer);
-            }
-            thisPlayerPreviousState = thisPlayer;
+            //Stop flooding server with messages for no change - Will need to be changed to prevent timeout
+            //if (thisPlayer != thisPlayerPreviousState)
+            //{
+            //Connection.Instance.SendUpdate(thisPlayer);
+            Connection.Instance.SendMessage(thisPlayer.GetState());
+            //}
+            //thisPlayerPreviousState = thisPlayer;
         }
         /// <summary>
         /// Calls functions that require updating every cycle of the game loop.
@@ -178,11 +149,6 @@ namespace MGSE_Project
         {
 
             base.Update(gameTime);
-            if (!runOnce)
-            {
-                Console.WriteLine("GameScreen");
-                runOnce = true;
-            }
 
             thisPlayer.update(gameTime);
             updatePlayers(Connection.Instance.PlayerList);
@@ -244,11 +210,15 @@ namespace MGSE_Project
 
             spriteBatch.End();
         }
+        /// <summary>
+        /// Called when transitioning from another game screen.
+        /// </summary>
+        /// <param name="message">
+        /// Transition message from previous game screen. 
+        /// </param>
         public override void Transition(string message)
         {
             playerName = message;
-            //players[0].Name = message;
-            //Do something with transition message.
         }
     }
 }
