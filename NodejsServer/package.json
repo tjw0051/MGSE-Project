@@ -1,0 +1,20 @@
+{
+  "name": "nodejsserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "mongodb": "~1.4",
+    "monk": "latest"
+  },
+  "devDependencies": {
+    "mongodb": "~1.4",
+    "monk": "latest"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Tom",
+  "license": "ISC"
+}

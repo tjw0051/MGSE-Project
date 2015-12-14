@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MGSE_ProjectContent", "MGSE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7BB5B2E-D351-429F-A72A-596C19203E1F}"
 	ProjectSection(SolutionItems) = preProject
+		NodejsServer\package.json = NodejsServer\package.json
+		README.md = README.md
 		NodejsServer\server.js = NodejsServer\server.js
 	EndProjectSection
 EndProject
