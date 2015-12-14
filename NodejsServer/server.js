@@ -1,3 +1,7 @@
+var mongo = require('mongodb');
+var monk = require('monk');
+
+
 var net = require("net");
 var buffer = require("buffer");
 var stream = require("stream");
@@ -6,24 +10,32 @@ var clientNames = [];
 var maxClientsPerLobby = 2;
 var playerlist = [];
 
+function Client(socket, name) {
+    this.clientSocket = socket;
+    this.clientName = name;
+}
+
 function Lobby() {
-    this.lobbyClients = [];
-    this.playerNames = [];
+    //this.lobbyClients = [];
+    //this.playerNames = [];
+    this.clients = [];
 }
 var lobbies = [];
 
-var tcp_server = net.createServer(function(socket)
-{
-    // Process new clients
-    //clients.push(socket);
-    //console.log('\tclient connected');
+var db = monk('localhost:27017/PlayerDB');
+var collection = db.get('players');
+
+var tcp_server = net.createServer(function(socket) {
+
+    //Connect Client
+    var newClient = new Client(socket, "");
     for(var i = 0; i < lobbies.length; i++)
     {
         console.log("i = " + i + " lobbylength = " + lobbies.length);
-        if(lobbies[i].lobbyClients.length < maxClientsPerLobby)
+        if(lobbies[i].clients.length < maxClientsPerLobby)
         {
             console.log("Client added to lobby: " + i);
-            lobbies[i].lobbyClients.push(socket);
+            lobbies[i].clients.push(newClient);
         }
         else if(i == (lobbies.length - 1))
         {
@@ -32,6 +44,8 @@ var tcp_server = net.createServer(function(socket)
             //lobbies[i + 1].lobbyClients.push(socket);
         }
     }
+
+
 
 	// Message received.
 	socket.on('data', function(data) {
@@ -45,23 +59,54 @@ var tcp_server = net.createServer(function(socket)
 	  {
 		if(jsonObject.command == "Join") {
 			//playerlist.push(jsonObject.message);
-            lobbies[FindLobby(socket)].playerNames.push(jsonObject.message);
+            lobbies[FindLobby(socket)].clients.forEach(function (client) {
+                if(client.clientSocket == socket) {
+                    client.clientName = jsonObject.message;
+                }
+            });
+
 		    console.log("Player Joined: " + jsonObject.message);
-            var reply = JSON.stringify({"ServerName" : FindLobby(socket)});
-            var packet = JsonStringToData(reply);
-            var buffer = new Buffer(packet);
-            socket.write(buffer);
+            sendMessage(JSON.stringify({"ServerName" : FindLobby(socket)}), socket);
+
+            //Log Player in Database
+            collection.find({ name : jsonObject.message}, {}, function(err, docs) {
+                if(docs.length > 0) {
+                    console.log("Player found in DB. sending settings...");
+                    sendMessage(DbToPlayerState(docs[0]), socket);
+                }
+                else
+                {
+                    console.log("new player, inserting to database: " + jsonObject.message);
+                    collection.insert({"type":"PlayerState",
+                                        "name":jsonObject.message,
+                                        "size":49,
+                                        "posX":0,
+                                        "posY":0,
+                                        "velX":0,
+                                        "velY":0},
+                                        {} );
+                }
+            });
 		}
 
 		if(jsonObject.command == "PlayerList" ) {
 		  //var replyMessage = JSON.stringify({"type" : "PlayerList", "players" : playerlist});
-            var replyMessage = JSON.stringify({"type" : "PlayerList", "players" : lobbies[FindLobby(socket)].playerNames});
-		  var fullMessage = JsonStringToData(replyMessage);
-		  var buffer = new Buffer(fullMessage);
-		  socket.write(buffer);
+            sendMessage(JSON.stringify({"type" : "PlayerList", "players" : GetPlayerlist(FindLobby(socket))}), socket);
 		}
 
 	  }
+      if(jsonObject.type == "PlayerState")
+      {
+          broadcast(data, socket);
+          //Update server entry
+          collection.update({name : jsonObject.name}, { $set: { size : jsonObject.size,
+                                                                  posX : jsonObject.posX,
+                                                                  posY : jsonObject.posY,
+                                                                  velX : jsonObject.velX,
+                                                                  velY : jsonObject.velY}}, function(err) {
+              //console.log("error updating");
+          });
+      }
 	  // Message for clients to read.
 	  else
 		broadcast(data, socket);
@@ -73,19 +118,44 @@ var tcp_server = net.createServer(function(socket)
 	});
 	socket.on('close', function() {
 	  console.log(' X\tclient lost unexpectedly');
+        //Remove player from lobby when they leave.
+        var sendersLobby = FindLobby(socket);
+        for(var i = 0; i < lobbies[sendersLobby].clients.length; i ++)
+        {
+            if(lobbies[sendersLobby].clients[i].clientSocket === socket) {
+                var disconnectMessage = JSON.stringify({"type" : "RemovePlayer", "name" : lobbies[sendersLobby].clients[i].clientName});
+                var fullMessage = JsonStringToData(disconnectMessage);
+                console.log(lobbies[sendersLobby].clients[i].clientName);
+                console.log(disconnectMessage);
+                broadcastString(fullMessage, socket);
+                lobbies[sendersLobby].clients.splice(i, 1);
+                return;
+            }
+        }
+
 	});
     socket.on('error', function() {
         console.log(' X\t socket error');
     });
 
+    function sendMessage(message, client) {
+        var packet = message;
+        if(typeof message == "string")
+            packet = JsonStringToData(message);
+        var buffer = new Buffer(packet);
+        client.write(buffer);
+    }
+
 	// Send message to all clients except sender.
-	function broadcast(message, sender)
+	function broadcastString(message, sender)
 	{
         var sendersLobby = FindLobby(sender);
-        lobbies[sendersLobby].lobbyClients.forEach(function (client)
+        lobbies[sendersLobby].clients.forEach(function (client)
         {
-            if(client === sender) return;
-            client.write(message);
+            if(client.clientSocket != sender) {
+                console.log("sending broadcast to client");
+                sendMessage(message, client.clientSocket);
+            }
         });
         /*
 	  clients.forEach(function (client)
@@ -95,24 +165,59 @@ var tcp_server = net.createServer(function(socket)
 	  });
 	  */
 	}
+    function broadcast(message, sender)
+    {
+        var sendersLobby = FindLobby(sender);
+        lobbies[sendersLobby].clients.forEach(function (client)
+        {
+            if(client.clientSocket != sender) {
+                console.log("sending broadcast to client");
+                client.clientSocket.write(message);
+            }
+        });
+        /*
+         clients.forEach(function (client)
+         {
+         if(client === sender) return;
+         client.write(message);
+         });
+         */
+    }
+
 });
 tcp_server.listen(8888, function() {
   console.log("\tserver bound");
     lobbies[0] = new Lobby();
+
+    //Database Tests
+    collection.update({name : 'Elmo'}, { $set: { velX : '2' }}, function(err) {
+        console.log("error updating");
+    });
+
 });
 
 function FindLobby(sender) {
     for(var i = 0; i < lobbies.length; i++)
     {
         //if(lobbies[i].lobbyClients.contains(sender))
-        for(var x = 0; x < lobbies[i].lobbyClients.length; x++)
+        //for(var x = 0; x < lobbies[i].lobbyClients.length; x++)
+        for(var x = 0; x < lobbies[i].clients.length; x++)
         {
-            if(lobbies[i].lobbyClients[x] == sender) {
+            if(lobbies[i].clients[x].clientSocket == sender) {
                 //console.log("Found client in lobby: " + i);
                 return i;
             }
         }
     }
+};
+
+
+function GetPlayerlist(lobby) {
+    var playerNames = [];
+    lobbies[lobby].clients.forEach(function (client) {
+        playerNames.push(client.clientName)
+    });
+    return playerNames;
 };
 
 // Convert a received byte array to a json string.
@@ -137,9 +242,21 @@ function JsonStringToData(jsonString) {
   return fullMessage;
 };
 
+function DbToPlayerState(dbEntry) {
+    var playerState = JSON.stringify({"type" : dbEntry.type,
+                                            "name" : dbEntry.name,
+                                            "size" : dbEntry.size,
+                                            "posX" : dbEntry.posX,
+                                            "posY" : dbEntry.posY,
+                                            "velX" : dbEntry.velX,
+                                            "velY" : dbEntry.velY});
+    return playerState;
+
+};
+
 // UTF8 to byte array functions.
 // Source: http://stackoverflow.com/questions/1240408/reading-bytes-from-a-javascript-string
-// User: Kadm
+// Author: Kadm
 // Obtained: 07/12/2015
 var utf8 = {}
 utf8.toByteArray = function(str) {

@@ -18,7 +18,7 @@ namespace MGSE_Project
     class Level_0 : GameScreen
     {
         bool runOnce = false;
-        string playerName = "NoName";
+        string playerName = "NoName"; // Refactor: remove and get name from connection.instance.loadedPlayer.name
         List<PlayerObject> players;
         PlayerObject thisPlayer, thisPlayerPreviousState;
         List<IGameObject> worldObjects;
@@ -31,6 +31,7 @@ namespace MGSE_Project
 
         public Level_0()
         {
+            Connection.Instance.removePlayerEvent += new Connection.RemovePlayerEvent(PlayerRemovedEvent);
         }
         public override void Dispose(bool disposing)
         {
@@ -54,10 +55,11 @@ namespace MGSE_Project
             //Create This Player
             players = new List<PlayerObject>();
             thisPlayer = 
-                new PlayerObject(//playerName, //"PLAYER " + random.Next(0, 100), 
-                "PLAYER " + random.Next(0, 100),
+                new PlayerObject(Connection.Instance.loadedPlayer.name, //"PLAYER " + random.Next(0, 100), 
+                //"PLAYER " + random.Next(0, 100),
                 new ClientInput(),
-                new Vector2(random.Next(0, 500),random.Next(0, 500)), 
+                new Vector2(Connection.Instance.loadedPlayer.posX,
+                    Connection.Instance.loadedPlayer.posY), 
                 new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
                 playerTexture,
                 random.Next(48, 52));
@@ -104,9 +106,11 @@ namespace MGSE_Project
         /// <param name="newPlayers">List of newly recieved player data from server</param>
         private void updatePlayers(List<PlayerState> newPlayers)
         {
+            //Console.WriteLine("Players: " + players.Count);
             bool exists;
             foreach (PlayerState player in newPlayers)
             {
+                //Console.WriteLine(player.name);
                 exists = false;
                 foreach (PlayerObject currentPlayer in players)
                 {
@@ -123,7 +127,7 @@ namespace MGSE_Project
                 }
                 if (!exists)
                 {
-                    Console.WriteLine("Creating new player");
+                    //Console.WriteLine("Creating new player");
                     players.Add(
                                 new PlayerObject(player.name,
                                 new ServerInput(),
@@ -140,7 +144,21 @@ namespace MGSE_Project
             Connection.Instance.SendMessage(thisPlayer.GetState());
             //}
             //thisPlayerPreviousState = thisPlayer;
+
+            
         }
+
+        public void PlayerRemovedEvent(string name)
+        {
+            Console.WriteLine("PlayerRemovedEvent");
+            for(int i = 0; i < players.Count; i++)
+            {
+                if (players[i].Name == name)
+                    players.RemoveAt(i);
+            }
+
+        }
+
         /// <summary>
         /// Calls functions that require updating every cycle of the game loop.
         /// </summary>

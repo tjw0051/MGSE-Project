@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Web.Script.Serialization;
+using System.Threading.Tasks;
 
 namespace MGSE_Project
 {
@@ -104,8 +105,11 @@ namespace MGSE_Project
                         Color.Blue,
                         null,
                         50);
+                    connection.loadedPlayer = new PlayerState() { name = inputBox.text };
                     //player.Name = inputBox.text;
-                    connection.Initialize();
+                    Task task = new Task(connection.Initialize);
+                    task.Start();
+                    task.Wait();
                     ServerMessage joinMessage = MessageBuilder.ServerMessageBuilder("Join", player.Name);
                     connection.SendMessage(joinMessage);
                     connection.SendMessage(MessageBuilder.ServerMessageBuilder("PlayerList", ""));

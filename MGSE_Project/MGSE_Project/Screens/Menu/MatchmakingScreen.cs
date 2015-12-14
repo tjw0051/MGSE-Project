@@ -11,6 +11,7 @@ namespace MGSE_Project
 {
     class MatchmakingScreen : GameScreen
     {
+        string transitionMessage;
         SpriteBatch spriteBatch;
         ContentManager content;
 
@@ -126,7 +127,7 @@ namespace MGSE_Project
         protected void Join()
         {
             Console.WriteLine("Join clicked");
-            ScreenManager.Transition(typeof(Level_0), "todo");
+            ScreenManager.Transition(typeof(Level_0), transitionMessage);
 
         }
         protected void exit() { Console.WriteLine("Exit clicked"); ScreenManager.Game.Exit(); }
@@ -147,6 +148,10 @@ namespace MGSE_Project
             }
             spriteBatch.End();
             
+        }
+        public override void Transition(string message)
+        {
+            this.transitionMessage = message;
         }
     }
 }

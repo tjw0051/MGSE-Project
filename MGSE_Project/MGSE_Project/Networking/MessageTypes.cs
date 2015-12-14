@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 namespace MGSE_Project
 {
     interface IMessage { };
+
+    //TODO: Store colour
     public class PlayerState : IMessage
     {
         public string type = "PlayerState";
@@ -21,6 +23,11 @@ namespace MGSE_Project
     public class ServerNameMessage : IMessage
     {
         public string type = "ServerName";
+        public string name;
+    }
+    public class RemovePlayerMessage : IMessage
+    {
+        public string type = "RemovePlayer";
         public string name;
     }
 
