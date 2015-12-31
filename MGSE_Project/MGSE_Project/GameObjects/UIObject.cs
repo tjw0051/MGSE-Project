@@ -18,6 +18,8 @@ namespace MGSE_Project.GameObjects
                 return name;
             }
         }
+        
+        public Rectangle Rect { get; set; }
 
         public void loadContent(ContentManager content)
         {

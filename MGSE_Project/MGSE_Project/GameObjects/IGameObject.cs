@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace MGSE_Project
 {
-    interface IGameObject
+    public interface IGameObject
     {
         /*
         Components:
@@ -20,7 +20,7 @@ namespace MGSE_Project
         {
             get;
         }
-
+        Rectangle Rect { get; set; }
         void loadContent(ContentManager content);
         void update(GameTime gameTime);
         void draw(GameTime gameTime, SpriteBatch spriteBatch);

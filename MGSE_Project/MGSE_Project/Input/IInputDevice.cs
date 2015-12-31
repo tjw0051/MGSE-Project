@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace MGSE_Project
 {
-    interface IInputDevice
+    public interface IInputDevice
     {
         Vector2 Axis
         {

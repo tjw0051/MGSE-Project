@@ -32,6 +32,7 @@ namespace MGSE_Project
         public PlayerState loadedPlayer { get; set; }
         public string ServerName { get; private set; }
         public List<PlayerState> PlayerList { get; private set; }
+        public Vector2[] PickupList { get; set; }
         public string[] playerNames;
 
         //Singleton used for Connection, as client can only operate
@@ -157,7 +158,7 @@ namespace MGSE_Project
             byte[] jsonBytes = Encoding.UTF8.GetBytes(message);
             byte[] sizeBytes = BitConverter.GetBytes(jsonBytes.Length);
             byte[] messageBytes = new byte[jsonBytes.Length + 4];
-            //Console.WriteLine("size: " + jsonBytes.Length);
+            Console.WriteLine("size: " + jsonBytes.Length);
             //Message:
             //Bytes     Data
             //-----------------------------
@@ -209,7 +210,19 @@ namespace MGSE_Project
 
                                 playerNames = players.players;
                             }
-                            if(jsonMessageType.type == "ServerName")
+                            if (jsonMessageType.type == "PickList")
+                            {
+                                //Console.WriteLine("PlayerList Recieved");
+                                PickupListMessage pickupList = jsSerializer.Deserialize<PickupListMessage>(jsonMessageString);
+
+                                PickupList = new Vector2[pickupList.pickupXPos.Length];
+                                for(int i = 0; i < PickupList.Length; i++)
+                                {
+                                    PickupList[i] = new Vector2(Int32.Parse(pickupList.pickupXPos[i]), Int32.Parse(pickupList.pickupYPos[i]));
+                                }
+
+                            }
+                            if (jsonMessageType.type == "ServerName")
                             {
                                 //Console.WriteLine("Servername Recieved");
                                 ServerNameMessage serverNameMessage =
@@ -233,6 +246,12 @@ namespace MGSE_Project
                                     }
                                 }
                             }
+                            if(jsonMessageType.type == "SessionChange")
+                            {
+                                SessionChangeMessage sessionChangeMessage = 
+                                    jsSerializer.Deserialize<SessionChangeMessage>(jsonMessageString);
+                                sessionChangeEvent(sessionChangeMessage.message);
+                            }
                             else
                             {
                                 //Console.WriteLine("Type is not PlayerState");
@@ -252,7 +271,12 @@ namespace MGSE_Project
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Triggered when the session has been changed (start game, end game)
+        /// </summary>
+        public event SessionChangeEvent sessionChangeEvent;
+        public delegate void SessionChangeEvent(String message);
         /// <summary>
         /// Triggered when the server find the existing user on the database 
         /// and sends the state to the client.

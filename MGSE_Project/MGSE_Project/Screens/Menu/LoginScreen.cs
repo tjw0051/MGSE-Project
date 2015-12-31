@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace MGSE_Project
 {
+    /// <summary>
+    /// Login screen for players to input their name and go to the matchmaking screen.
+    /// </summary>
     class LoginScreen: GameScreen
     {
         string message = "Enter your name below:";
@@ -80,7 +83,6 @@ namespace MGSE_Project
                     login();
                 else if (mousePos.Intersects(exitButton.rect))
                     exit();
-
             }
             inputBox.update(gameTime, mousePos);
             loginButton.update(gameTime, mousePos);
@@ -101,6 +103,7 @@ namespace MGSE_Project
                     PlayerObject player = new PlayerObject(
                         inputBox.text,
                         null,
+                        ScreenManager.GraphicsDevice.Viewport,
                         new Vector2(0, 0),
                         Color.Blue,
                         null,

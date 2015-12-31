@@ -12,7 +12,7 @@ namespace MGSE_Project
     {
         Texture2D texture;
         Vector2 pos;
-        Rectangle rectangle;
+        public Rectangle Rect { get; set; }
 
         string name = "";
         public string Name
@@ -25,7 +25,7 @@ namespace MGSE_Project
 
         public WorldObject(Rectangle rectangle, Texture2D texture)
         {
-            this.rectangle = rectangle;
+            this.Rect = rectangle;
             this.texture = texture;
         }
         //TODO: Cleanup - texture can be assigned in initializer
@@ -42,7 +42,7 @@ namespace MGSE_Project
 
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture, rectangle, Color.White);
+            spriteBatch.Draw(texture, Rect, Color.White);
         }
     }
 }

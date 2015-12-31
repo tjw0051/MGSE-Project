@@ -12,7 +12,7 @@ namespace MGSE_Project
     /// <summary>
     /// Defines the players in the game.
     /// </summary>
-    class PlayerObject : IGameObject
+    public class PlayerObject : IGameObject
     {
         string name = "";
         public string Name
@@ -39,7 +39,7 @@ namespace MGSE_Project
         {
             get
             {
-                return new Vector2(Pos.X + size/2, Pos.Y + size/2);
+                return new Vector2(Rect.X + size/2, Rect.Y + size/2);
             }
         }
         int size;
@@ -59,7 +59,20 @@ namespace MGSE_Project
         {
             get
             {
+                pos.X = Rect.X;
+                pos.Y = Rect.Y;
                 return pos;
+            }
+        }
+        public Rectangle Rect
+        {
+            get
+            {
+                return rect;
+            }
+            set
+            {
+                rect = value;
             }
         }
         
@@ -69,6 +82,7 @@ namespace MGSE_Project
         Texture2D texture;
         Rectangle rect;
         SpriteFont font;
+        Viewport viewport;
 
         PlayerState currentState;
 
@@ -76,23 +90,25 @@ namespace MGSE_Project
 
         public PlayerObject() { }
 
-        public PlayerObject(string name, IInputDevice inputDevice,
+        public PlayerObject(string name, IInputDevice inputDevice, Viewport viewport,
             Vector2 startPosition, Color color, Texture2D texture, int size)
         {
+            this.viewport = viewport;
             this.name = name;
             this.inputDevice = inputDevice;
-            pos = startPosition;
+            //pos = startPosition;
             this.color = color;
             this.texture = texture;
             this.size = size;
             velocity = new Vector2(0, 0);
-            rect = new Rectangle((int)Pos.X, (int)Pos.Y, size, size);
+            rect = new Rectangle((int)startPosition.X, (int)startPosition.Y,
+                size, size);
             currentState = new PlayerState()
             {
                 name = this.name,
                 size = this.size,
-                posX = (int)this.pos.X,
-                posY = (int)this.pos.Y,
+                posX = (int)this.Rect.X,
+                posY = (int)this.Rect.Y,
                 velX = (int)this.velocity.X,
                 velY = (int)this.velocity.Y
             };
@@ -105,15 +121,15 @@ namespace MGSE_Project
 
         public void updatePosition(int x, int y)
         {
-            pos.X = x;
-            pos.Y = y;
+            rect.X = x;
+            rect.Y = y;
         }
 
         public PlayerState GetState()
         {
             currentState.size = this.size;
-            currentState.posX = (int)this.pos.X;
-            currentState.posY = (int)this.pos.Y;
+            currentState.posX = (int)this.Rect.X;
+            currentState.posY = (int)this.Rect.Y;
             currentState.velX = (int)this.velocity.X;
             currentState.velY = (int)this.velocity.Y;
             return currentState;
@@ -132,8 +148,8 @@ namespace MGSE_Project
         public void UpdateState(PlayerState state)
         {
             this.size = state.size;
-            this.pos.X = state.posX;
-            this.pos.Y = state.posY;
+            this.rect.X = state.posX;
+            this.rect.Y = state.posY;
             this.velocity.X = state.velX;
             this.velocity.Y = state.velY;
         }
@@ -145,23 +161,57 @@ namespace MGSE_Project
         {
             size++;
         }
+        /// <summary>
+        /// Triggered when colliding with another player.
+        /// </summary>
+        /// <param name="size">Size of opponent.</param>
+        public void Colliding(int size)
+        {
+            if (Size > size)
+                Grow();
+            if (Size < size)
+                Shrink();
+        }
+        /// <summary>
+        /// Check for collising with world boundaries
+        /// </summary>
+        public void WorldCollisionCheck()
+        {
+            if (Rect.Left < 0)
+                rect.X = 0;
+            if (Rect.Right > viewport.Width)
+                rect.X = viewport.Width - Rect.Width;
+            if (Rect.Top < 0)
+                rect.Y = 0;
+            if (Rect.Bottom > viewport.Height)
+                rect.Y = viewport.Height - Rect.Height;
+        }
+
         public void update(GameTime gameTime)
         {
             inputDevice.update();
             velocity = inputDevice.Axis * 0.3f;
             
-            pos.X += velocity.X * gameTime.ElapsedGameTime.Milliseconds;
-            pos.Y += velocity.Y * gameTime.ElapsedGameTime.Milliseconds;
+            rect.X += (int) (velocity.X * gameTime.ElapsedGameTime.Milliseconds);
+            rect.Y += (int) (velocity.Y * gameTime.ElapsedGameTime.Milliseconds);
             
-            rect.X = (int)pos.X;
-            rect.Y = (int)pos.Y;
             rect.Width = size;
             rect.Height = size;
+
+            if (size <= 1)
+                Connection.Instance.SendMessage(
+                    new RemovePlayerMessage()
+                    {
+                        name = Name
+                    });
+                //Death Condition - Send RemovePlayer message to server.
+
+            WorldCollisionCheck();
         }
 
         public void draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture, rect, color);
+            spriteBatch.Draw(texture, Rect, color);
             //Console.WriteLine("Drawing " + Name + " at " + rect.X + " , " 
             //    + rect.Y + " , " + rect.Width + " , " + rect.Height);
 

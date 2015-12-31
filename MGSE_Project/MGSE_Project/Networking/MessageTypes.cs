@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,13 @@ namespace MGSE_Project
         public int velY;
     }
 
+    public class PickupListMessage : IMessage
+    {
+        public string type = "PickList";
+        public string[] pickupXPos;
+        public string[] pickupYPos;
+    }
+
     public class ServerNameMessage : IMessage
     {
         public string type = "ServerName";
@@ -29,6 +37,11 @@ namespace MGSE_Project
     {
         public string type = "RemovePlayer";
         public string name;
+    }
+    public class SessionChangeMessage : IMessage
+    {
+        public string type = "SessionChange";
+        public string message;
     }
 
     public class NewPlayerMessage : IMessage

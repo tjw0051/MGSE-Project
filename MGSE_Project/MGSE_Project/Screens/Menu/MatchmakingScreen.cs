@@ -9,8 +9,12 @@ using Microsoft.Xna.Framework.Input;
 
 namespace MGSE_Project
 {
+    /// <summary>
+    /// Lobby screen to show other players connecting to the game.
+    /// </summary>
     class MatchmakingScreen : GameScreen
     {
+        const int pickupCount = 20;
         string transitionMessage;
         SpriteBatch spriteBatch;
         ContentManager content;
@@ -25,6 +29,7 @@ namespace MGSE_Project
         public MatchmakingScreen()
         {
             Connection.Instance.disconnectEvent += new Connection.DisconnectEvent(DisconnectEvent);
+            Connection.Instance.sessionChangeEvent += new Connection.SessionChangeEvent(GameStartEvent);
         }
         /// <summary>
         /// Load initial game data and assets once.
@@ -65,8 +70,7 @@ namespace MGSE_Project
                 content);
             //Load Exit Button
         }
-
-
+        
         public override void UnloadContent()
         {
             content.Unload();
@@ -124,12 +128,59 @@ namespace MGSE_Project
             ScreenManager.Transition(typeof(LoginScreen), message);
         }
 
+        public void GameStartEvent(string message)
+        {
+            if (message == "Start")
+                ScreenManager.Transition(typeof(Level_0), transitionMessage);
+        }
+
         protected void Join()
         {
             Console.WriteLine("Join clicked");
-            ScreenManager.Transition(typeof(Level_0), transitionMessage);
+            //Only start game if there are more than 1 players
+            if (Connection.Instance.playerNames.Length > 1)
+            {
+                Vector2[] pickupList = CreatePickups(pickupCount);
+                Connection.Instance.PickupList = pickupList;
+                PickupListMessage pickupListMessage = new PickupListMessage() { type = "PickList" };
+                pickupListMessage.pickupXPos = new string[pickupCount];
+                pickupListMessage.pickupYPos = new string[pickupCount];
+                for(int i = 0; i < pickupCount; i++)
+                {
+                    pickupListMessage.pickupXPos[i] = pickupList[i].X.ToString();
+                    pickupListMessage.pickupYPos[i] = pickupList[i].Y.ToString();
+                }
+                Connection.Instance.SendMessage(pickupListMessage);
+                /*
+                Connection.Instance.SendMessage(
+                    new PickupListMessage()
+                    {
+
+                    });
+                    */
+                Connection.Instance.SendMessage(
+                    new SessionChangeMessage()
+                    {
+                        message = "Start"
+                    });
+                ScreenManager.Transition(typeof(Level_0), transitionMessage);
+            }
 
         }
+        protected Vector2[] CreatePickups(int amount)
+        {
+            Vector2[] pickups = new Vector2[amount];
+            Random rand = new Random();
+            for(int i = 0; i < amount; i++)
+            {
+                int x = rand.Next(0, ScreenManager.GraphicsDevice.Viewport.Width - 21);
+                int y = rand.Next(0, ScreenManager.GraphicsDevice.Viewport.Height - 21);
+
+                pickups[i] = new Vector2(x, y);
+            }
+            return pickups;
+        }
+
         protected void exit() { Console.WriteLine("Exit clicked"); ScreenManager.Game.Exit(); }
         /// <summary>
         /// Draw the game on the canvas

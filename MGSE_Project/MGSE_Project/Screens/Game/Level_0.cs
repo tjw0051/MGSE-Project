@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Net;
-
+using MGSE_Project.Utilities;
 
 namespace MGSE_Project
 {
@@ -58,6 +58,7 @@ namespace MGSE_Project
                 new PlayerObject(Connection.Instance.loadedPlayer.name, //"PLAYER " + random.Next(0, 100), 
                 //"PLAYER " + random.Next(0, 100),
                 new ClientInput(),
+                ScreenManager.GraphicsDevice.Viewport,
                 new Vector2(Connection.Instance.loadedPlayer.posX,
                     Connection.Instance.loadedPlayer.posY), 
                 new Color(random.Next(0, 255), random.Next(0, 255), random.Next(0, 255)),
@@ -65,14 +66,23 @@ namespace MGSE_Project
                 random.Next(48, 52));
 
             //Create Pickups
+            //Check for existing players to load pickups from:
             worldObjects = new List<IGameObject>();
-            
+
+            while (Connection.Instance.PickupList == null) { }
+            foreach(Vector2 pickupPos in Connection.Instance.PickupList)
+            {
+                worldObjects.Add(new WorldObject(
+                    new Rectangle((int)pickupPos.X, (int)pickupPos.Y,
+                        20, 20), pickupTexture));
+            }
+
             for(int i = 0; i < noOfPickups; i++)
             {
                 worldObjects.Add(new WorldObject(
                     new Rectangle(random.Next(0, ScreenManager.GraphicsDevice.Viewport.Width), 
                         random.Next(0, ScreenManager.GraphicsDevice.Viewport.Height),
-                        25, 25), pickupTexture));
+                        20, 20), pickupTexture));
             }
 
 
@@ -106,46 +116,33 @@ namespace MGSE_Project
         /// <param name="newPlayers">List of newly recieved player data from server</param>
         private void updatePlayers(List<PlayerState> newPlayers)
         {
-            //Console.WriteLine("Players: " + players.Count);
             bool exists;
             foreach (PlayerState player in newPlayers)
             {
-                //Console.WriteLine(player.name);
                 exists = false;
                 foreach (PlayerObject currentPlayer in players)
                 {
                     if(currentPlayer.Name == player.name)
                     {
-                        //gameObjects.Remove(gameObject);
-                        //ToDo: Inconsistent - Properties and set methods
                         currentPlayer.UpdateState(player);
-                        //currentPlayer.updatePosition(player.posX, player.posY);
-                        //currentPlayer.Size = player.size;
                         exists = true;
                         break;
                     }
                 }
                 if (!exists)
                 {
-                    //Console.WriteLine("Creating new player");
                     players.Add(
                                 new PlayerObject(player.name,
                                 new ServerInput(),
+                                ScreenManager.GraphicsDevice.Viewport,
                                 new Vector2(player.posX, player.posY),
                                 new Color(200, 0, 20),
                                 playerTexture,
                                 player.size));
                 }
             }
-            //Stop flooding server with messages for no change - Will need to be changed to prevent timeout
-            //if (thisPlayer != thisPlayerPreviousState)
-            //{
-            //Connection.Instance.SendUpdate(thisPlayer);
-            Connection.Instance.SendMessage(thisPlayer.GetState());
-            //}
-            //thisPlayerPreviousState = thisPlayer;
-
-            
+            if(thisPlayer.Size > 1)
+                Connection.Instance.SendMessage(thisPlayer.GetState());
         }
 
         public void PlayerRemovedEvent(string name)
@@ -172,43 +169,26 @@ namespace MGSE_Project
             updatePlayers(Connection.Instance.PlayerList);
 
             //Update World Objects
-            foreach (IGameObject worldObjects in worldObjects)
-                worldObjects.update(gameTime);
+            for(int i = 0; i < worldObjects.Count(); i++)
+            {
+                worldObjects[i].update(gameTime);
+                if (CollisionCheck.IGameObjectCollisionCheck(worldObjects[i], thisPlayer))
+                {
+                    thisPlayer.Grow();
+                    worldObjects.RemoveAt(i);
+                }
+            }
 
             //CollisionCheck(gameTime);
             foreach (PlayerObject player in players)
             {
                 player.update(gameTime);
+                if (CollisionCheck.IGameObjectCollisionCheck(player, thisPlayer))
+                    thisPlayer.Colliding(player.Size);
             }
             
         }
-        /// <summary>
-        /// Check for collisions between players.
-        /// </summary>
-        /// <param name="gameTime"></param>
-        public void CollisionCheck(GameTime gameTime)
-        {
-            foreach (PlayerObject player in players)
-            {
-                foreach (PlayerObject player2 in players)
-                {
-                    if (Vector2.Distance(player.Center, player2.Center) <= player.Size / 2 + player2.Size / 2)
-                    {
-                        if (player.Size <= player2.Size)
-                        {
-                            player.Shrink();
-                            player2.Grow();
-                        }
-                        else
-                        {
-                            player.Grow();
-                            player2.Shrink();
-                        }
-                    }
-                }
-                
-            }
-        }
+        
         
         /// <summary>
         /// Draw the game on the canvas

@@ -56,7 +56,7 @@ var tcp_server = net.createServer(function(socket) {
 
 	  // Message for server to read.
 	  if (jsonObject.type == "ServerMessage")
-	  {
+	  { //console.log('Recieved ServerMessage');
 		if(jsonObject.command == "Join") {
 			//playerlist.push(jsonObject.message);
             lobbies[FindLobby(socket)].clients.forEach(function (client) {
@@ -90,6 +90,7 @@ var tcp_server = net.createServer(function(socket) {
 		}
 
 		if(jsonObject.command == "PlayerList" ) {
+      //console.log('Recieved PlayerList');
 		  //var replyMessage = JSON.stringify({"type" : "PlayerList", "players" : playerlist});
             sendMessage(JSON.stringify({"type" : "PlayerList", "players" : GetPlayerlist(FindLobby(socket))}), socket);
 		}
@@ -97,6 +98,7 @@ var tcp_server = net.createServer(function(socket) {
 	  }
       if(jsonObject.type == "PlayerState")
       {
+        //console.log('Recieved PlayerState');
           broadcast(data, socket);
           //Update server entry
           collection.update({name : jsonObject.name}, { $set: { size : jsonObject.size,
@@ -109,7 +111,10 @@ var tcp_server = net.createServer(function(socket) {
       }
 	  // Message for clients to read.
 	  else
-		broadcast(data, socket);
+    {
+      //console.log('Broadcasting unknown message');
+		    broadcast(data, socket);
+    }
 
 	});
 	socket.on('end', function() {
@@ -153,7 +158,7 @@ var tcp_server = net.createServer(function(socket) {
         lobbies[sendersLobby].clients.forEach(function (client)
         {
             if(client.clientSocket != sender) {
-                console.log("sending broadcast to client");
+                //console.log("sending broadcast to client");
                 sendMessage(message, client.clientSocket);
             }
         });
@@ -171,7 +176,7 @@ var tcp_server = net.createServer(function(socket) {
         lobbies[sendersLobby].clients.forEach(function (client)
         {
             if(client.clientSocket != sender) {
-                console.log("sending broadcast to client");
+                //console.log("sending broadcast to client");
                 client.clientSocket.write(message);
             }
         });
@@ -190,9 +195,9 @@ tcp_server.listen(8888, function() {
     lobbies[0] = new Lobby();
 
     //Database Tests
-    collection.update({name : 'Elmo'}, { $set: { velX : '2' }}, function(err) {
-        console.log("error updating");
-    });
+    //collection.update({name : 'Elmo'}, { $set: { velX : '2' }}, function(err) {
+    //    console.log("error updating");
+    //});
 
 });
 
