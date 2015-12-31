@@ -227,12 +227,42 @@ function GetPlayerlist(lobby) {
 
 // Convert a received byte array to a json string.
 function DataToJsonString(data) {
+  //console.log('Raw Data: ' + data);
   var stringData = data.toString();
 
-  var messageBytes = utf8.toByteArray(stringData);
-  var size = messageBytes[0];
-  var parsedMessageBytes = messageBytes.slice(4, size + 4);
-  return utf8.parse(parsedMessageBytes);
+  //console.log('Raw String: ' + stringData);
+  var jsonStartIndex = stringData.indexOf('{\"');
+  var jsonEndIndex;
+  var jsonBracketIncrement = 0;
+  for(var i = jsonStartIndex + 1; i < stringData.length; i++)
+  {
+    if(stringData.charAt(i) == '{')
+      jsonBracketIncrement++;
+    if(stringData.charAt(i) == '}') {
+      if(jsonBracketIncrement == 0) {
+        jsonEndIndex = i;
+        break;
+      }
+      else {
+        jsonBracketIncrement--;
+      }
+    }
+  }
+
+  //console.log('index: ' + jsonStartIndex + ' LastIndex: ' + jsonEndIndex);
+  var result = stringData.slice(jsonStartIndex, jsonEndIndex + 1);
+   if(stringData.search('PickupList') > -1) {
+  //   console.log('Raw String: ' + stringData);
+  //   console.log('index: ' + jsonStartIndex + ' LastIndex: ' + jsonEndIndex);
+     console.log('Result: ' + result);
+   }
+  //console.log('Result: ' + result);
+  //console.log('Data = ' + stringData);
+  //var messageBytes = utf8.toByteArray(stringData);
+  //var size = messageBytes[0];
+  //var parsedMessageBytes = messageBytes.slice(4, size + 4);
+  //return utf8.parse(parsedMessageBytes);
+  return result;
 };
 
 // Convert a JSON string to a byte array, prepended with 4 bytes representing the size of the json string.

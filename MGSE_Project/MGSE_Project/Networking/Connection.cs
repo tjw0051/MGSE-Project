@@ -158,7 +158,7 @@ namespace MGSE_Project
             byte[] jsonBytes = Encoding.UTF8.GetBytes(message);
             byte[] sizeBytes = BitConverter.GetBytes(jsonBytes.Length);
             byte[] messageBytes = new byte[jsonBytes.Length + 4];
-            Console.WriteLine("size: " + jsonBytes.Length);
+            //Console.WriteLine("size: " + jsonBytes.Length);
             //Message:
             //Bytes     Data
             //-----------------------------
@@ -210,17 +210,25 @@ namespace MGSE_Project
 
                                 playerNames = players.players;
                             }
-                            if (jsonMessageType.type == "PickList")
+                            if (jsonMessageType.type == "PickupList")
                             {
                                 //Console.WriteLine("PlayerList Recieved");
                                 PickupListMessage pickupList = jsSerializer.Deserialize<PickupListMessage>(jsonMessageString);
 
-                                PickupList = new Vector2[pickupList.pickupXPos.Length];
+                                // PickupList = new Vector2[pickupList.pickupXPos.Length];
+                                PickupList = pickupList.pos;
+                                /*
                                 for(int i = 0; i < PickupList.Length; i++)
                                 {
                                     PickupList[i] = new Vector2(Int32.Parse(pickupList.pickupXPos[i]), Int32.Parse(pickupList.pickupYPos[i]));
-                                }
+                                } */
 
+                            }
+                            if (jsonMessageType.type == "RemovePickup")
+                            {
+                                RemovePickupMessage removePickupMessage =
+                                    jsSerializer.Deserialize<RemovePickupMessage>(jsonMessageString);
+                                removePickupEvent(removePickupMessage.pos);
                             }
                             if (jsonMessageType.type == "ServerName")
                             {
@@ -271,6 +279,9 @@ namespace MGSE_Project
                 }
             }
         }
+
+        public event RemovePickupEvent removePickupEvent;
+        public delegate void RemovePickupEvent(Vector2 pos);
 
         /// <summary>
         /// Triggered when the session has been changed (start game, end game)

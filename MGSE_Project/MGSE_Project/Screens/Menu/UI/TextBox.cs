@@ -41,7 +41,7 @@ namespace MGSE_Project
         }
         public void draw()
         {
-            spriteBatch.DrawString(font, text,
+                spriteBatch.DrawString(font, text,
                 new Vector2(pos.X - (font.MeasureString(text).X/2), pos.Y),
                 Color.Black, 0, fontCenter, 1.0f, SpriteEffects.None, 0.5f);
         }

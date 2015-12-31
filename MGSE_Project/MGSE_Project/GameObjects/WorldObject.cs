@@ -22,6 +22,13 @@ namespace MGSE_Project
                 return name;
             }
         }
+        public Vector2 Pos
+        {
+            get
+            {
+                return new Vector2(Rect.X, Rect.Y);
+            }
+        }
 
         public WorldObject(Rectangle rectangle, Texture2D texture)
         {

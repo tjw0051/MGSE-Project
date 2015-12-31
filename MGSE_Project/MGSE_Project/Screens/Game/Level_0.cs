@@ -32,6 +32,7 @@ namespace MGSE_Project
         public Level_0()
         {
             Connection.Instance.removePlayerEvent += new Connection.RemovePlayerEvent(PlayerRemovedEvent);
+            Connection.Instance.removePickupEvent += new Connection.RemovePickupEvent(RemovePickupEvent);
         }
         public override void Dispose(bool disposing)
         {
@@ -72,11 +73,12 @@ namespace MGSE_Project
             while (Connection.Instance.PickupList == null) { }
             foreach(Vector2 pickupPos in Connection.Instance.PickupList)
             {
+                Console.Write("x: " + pickupPos.X + " y: " + pickupPos.Y + " , ");
                 worldObjects.Add(new WorldObject(
                     new Rectangle((int)pickupPos.X, (int)pickupPos.Y,
                         20, 20), pickupTexture));
             }
-
+            /*
             for(int i = 0; i < noOfPickups; i++)
             {
                 worldObjects.Add(new WorldObject(
@@ -84,7 +86,7 @@ namespace MGSE_Project
                         random.Next(0, ScreenManager.GraphicsDevice.Viewport.Height),
                         20, 20), pickupTexture));
             }
-
+            */
 
             //Draw World Boundaries
             worldObjects.Add(
@@ -156,6 +158,16 @@ namespace MGSE_Project
 
         }
 
+        public void RemovePickupEvent(Vector2 pos)
+        {
+            for (int i = 0; i < worldObjects.Count; i++)
+            {
+                if (worldObjects[i].Rect.X == pos.X
+                    && worldObjects[i].Rect.Y == pos.Y)
+                    worldObjects.RemoveAt(i);
+            }
+        }
+
         /// <summary>
         /// Calls functions that require updating every cycle of the game loop.
         /// </summary>
@@ -175,6 +187,12 @@ namespace MGSE_Project
                 if (CollisionCheck.IGameObjectCollisionCheck(worldObjects[i], thisPlayer))
                 {
                     thisPlayer.Grow();
+                    Connection.Instance.SendMessage(
+                        new RemovePickupMessage()
+                        {
+                            pos = new Vector2(worldObjects[i].Rect.X,
+                                worldObjects[i].Rect.Y)
+                        });
                     worldObjects.RemoveAt(i);
                 }
             }

@@ -23,11 +23,16 @@ namespace MGSE_Project
 
     public class PickupListMessage : IMessage
     {
-        public string type = "PickList";
-        public string[] pickupXPos;
-        public string[] pickupYPos;
+        public string type = "PickupList";
+        public Vector2[] pos;
+        //public string[] pickupXPos;
+        //public string[] pickupYPos;
     }
-
+    public class RemovePickupMessage : IMessage
+    {
+        public string type = "RemovePickup";
+        public Vector2 pos;
+    }
     public class ServerNameMessage : IMessage
     {
         public string type = "ServerName";

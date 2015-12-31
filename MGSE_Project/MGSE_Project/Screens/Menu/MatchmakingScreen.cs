@@ -14,7 +14,7 @@ namespace MGSE_Project
     /// </summary>
     class MatchmakingScreen : GameScreen
     {
-        const int pickupCount = 20;
+        const int pickupCount = 10;
         string transitionMessage;
         SpriteBatch spriteBatch;
         ContentManager content;
@@ -142,13 +142,16 @@ namespace MGSE_Project
             {
                 Vector2[] pickupList = CreatePickups(pickupCount);
                 Connection.Instance.PickupList = pickupList;
-                PickupListMessage pickupListMessage = new PickupListMessage() { type = "PickList" };
-                pickupListMessage.pickupXPos = new string[pickupCount];
-                pickupListMessage.pickupYPos = new string[pickupCount];
+                PickupListMessage pickupListMessage = new PickupListMessage();
+                pickupListMessage.pos = new Vector2[pickupCount];
+                //pickupListMessage.pickupXPos = new string[pickupCount];
+                //pickupListMessage.pickupYPos = new string[pickupCount];
                 for(int i = 0; i < pickupCount; i++)
                 {
-                    pickupListMessage.pickupXPos[i] = pickupList[i].X.ToString();
-                    pickupListMessage.pickupYPos[i] = pickupList[i].Y.ToString();
+                    pickupListMessage.pos[i] = 
+                        new Vector2(pickupList[i].X, pickupList[i].Y);
+                    //pickupListMessage.pickupXPos[i] = pickupList[i].X.ToString();
+                    //pickupListMessage.pickupYPos[i] = pickupList[i].Y.ToString();
                 }
                 Connection.Instance.SendMessage(pickupListMessage);
                 /*
