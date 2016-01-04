@@ -11,3 +11,4 @@ mongod --dbpath "C:/Users/t_j_w/Work/University/Multiplayer Game Software Engine
 
 ###(Optional)
 1. use Mongo.exe from Command Prompt to interact with server.
+2. The data used by the server is stored in the database 'PlayerDB' and the collection 'players'. To list all players from Mongo.exe, into the command prompt type 'use PlayerDB', then 'db.players.find().pretty()'
