@@ -6,6 +6,7 @@ Y3 - MGSE Project
 
 mongod --dbpath "C:/Users/t_j_w/Work/University/Multiplayer Game Software Engineering/MGSE_Project/NodejsServer/data/"
 
-1. use Mongo.exe from Command Prompt to interact with server.
 1. Run server.js
 1. Run client application
+###(Optional)
+1. use Mongo.exe from Command Prompt to interact with server.
